@@ -16,52 +16,52 @@ export function AboutUs() {
     ];
 
     return (
-        <section className="py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-800 overflow-hidden">
+        <section className="py-12 md:py-16 bg-background overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     {/* Content */}
                     <div>
                         <Reveal>
-                            <span className="inline-block px-4 py-2 bg-amber-500/10 text-amber-400 rounded-full text-sm font-semibold mb-4">
+                            <span className="inline-block px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-semibold mb-4">
                                 About Us
                             </span>
                         </Reveal>
                         <Reveal delay={0.1}>
-                            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+                            <h2 className="text-3xl sm:text-4xl font-bold text-brand-navy mb-6">
                                 Your Trusted Travel Partner Since{' '}
-                                <span className="text-amber-400">2024</span>
+                                <span className="text-brand-primary">2024</span>
                             </h2>
                         </Reveal>
                         <Reveal delay={0.2}>
-                            <p className="text-slate-300 text-lg mb-6 leading-relaxed">
+                            <p className="text-slate-600 text-lg mb-6 leading-relaxed">
                                 Swipe N Go Vacations is a licensed travel agency offering personalized domestic and international travel solutions. Whether it&apos;s a family holiday, romantic honeymoon, or group adventure, we craft each experience to match your style and budget.
                             </p>
                         </Reveal>
                         <Reveal delay={0.3}>
-                            <p className="text-slate-400 mb-8 leading-relaxed">
+                            <p className="text-slate-500 mb-8 leading-relaxed">
                                 Founded in 2024, we are committed to providing seamless travel planning, transparent pricing, and real-time assistance. We&apos;ve been connecting travelers to destinations with verified support and expert guidance.
                             </p>
                         </Reveal>
 
                         {/* Stats */}
                         <StaggerGrid className="grid grid-cols-3 gap-4 mb-8" delay={0.4}>
-                            <StaggerItem className="text-center p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-colors duration-300">
-                                <div className="text-2xl md:text-3xl font-bold text-amber-400">
+                            <StaggerItem className="text-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                                <div className="text-2xl md:text-3xl font-bold text-brand-primary">
                                     <CountUp end={500} suffix="+" />
                                 </div>
-                                <div className="text-slate-400 text-sm">Happy Travelers</div>
+                                <div className="text-slate-500 text-sm">Happy Travelers</div>
                             </StaggerItem>
-                            <StaggerItem className="text-center p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-colors duration-300">
-                                <div className="text-2xl md:text-3xl font-bold text-amber-400">
+                            <StaggerItem className="text-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                                <div className="text-2xl md:text-3xl font-bold text-brand-primary">
                                     <CountUp end={50} suffix="+" />
                                 </div>
-                                <div className="text-slate-400 text-sm">Destinations</div>
+                                <div className="text-slate-500 text-sm">Destinations</div>
                             </StaggerItem>
-                            <StaggerItem className="text-center p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 hover:bg-slate-700/50 transition-colors duration-300">
-                                <div className="text-2xl md:text-3xl font-bold text-amber-400">
+                            <StaggerItem className="text-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                                <div className="text-2xl md:text-3xl font-bold text-brand-primary">
                                     <CountUp end={100} suffix="%" />
                                 </div>
-                                <div className="text-slate-400 text-sm">Support</div>
+                                <div className="text-slate-500 text-sm">Support</div>
                             </StaggerItem>
                         </StaggerGrid>
 
@@ -71,7 +71,7 @@ export function AboutUs() {
                                 href="https://wa.me/917620011714?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20Swipe%20N%20Go%20Vacations."
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transform hover:scale-105 active:scale-95 transition-all duration-200"
+                                className="inline-flex items-center space-x-2 px-6 py-3 bg-brand-navy text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200"
                             >
                                 <span>Get in Touch</span>
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,10 +83,10 @@ export function AboutUs() {
 
                     {/* Destinations Visual */}
                     <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-3xl blur-3xl"></div>
-                        <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 md:p-8">
+                        <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/5 to-brand-secondary/5 rounded-3xl blur-3xl"></div>
+                        <div className="relative bg-white/50 backdrop-blur-sm border border-slate-100 rounded-3xl p-6 md:p-8 shadow-sm">
                             <Reveal>
-                                <h3 className="text-xl font-semibold text-white mb-6 text-center">
+                                <h3 className="text-xl font-semibold text-brand-navy mb-6 text-center">
                                     Popular Destinations We Cover
                                 </h3>
                             </Reveal>
@@ -104,11 +104,10 @@ export function AboutUs() {
                                                 className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
                                                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                                            <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/10 transition-colors duration-300"></div>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/80 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
                                         </div>
                                         <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-0 transition-transform duration-300">
-                                            <span className="text-white font-semibold text-sm md:text-base drop-shadow-lg block text-center">
+                                            <span className="text-white font-semibold text-sm md:text-base drop-shadow-md block text-center">
                                                 {destination.name}
                                             </span>
                                         </div>
@@ -117,22 +116,22 @@ export function AboutUs() {
                             </StaggerGrid>
 
                             {/* Trust Badges */}
-                            <Reveal delay={0.6} className="mt-8 pt-6 border-t border-slate-700/50">
+                            <Reveal delay={0.6} className="mt-8 pt-6 border-t border-slate-100">
                                 <div className="flex flex-wrap justify-center gap-4">
-                                    <div className="flex items-center space-x-2 text-slate-400">
-                                        <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <div className="flex items-center space-x-2 text-slate-500">
+                                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                         <span className="text-sm">Licensed Agency</span>
                                     </div>
-                                    <div className="flex items-center space-x-2 text-slate-400">
-                                        <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <div className="flex items-center space-x-2 text-slate-500">
+                                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                         <span className="text-sm">Verified Support</span>
                                     </div>
-                                    <div className="flex items-center space-x-2 text-slate-400">
-                                        <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <div className="flex items-center space-x-2 text-slate-500">
+                                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                         <span className="text-sm">Expert Guidance</span>

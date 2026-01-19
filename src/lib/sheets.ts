@@ -18,7 +18,7 @@ async function fetchSheetData<T>(tabName: string): Promise<T[]> {
     try {
         const url = getSheetUrl(tabName);
         const response = await fetch(url, {
-            next: { revalidate: 60 } // ISR: revalidate every 60 seconds
+            cache: 'no-store' // Fetch fresh data on every request
         });
 
         if (!response.ok) {
@@ -60,6 +60,33 @@ interface RawPackage {
     order?: string;
 }
 
+// Helper to convert various image links (Drive, etc.) to direct URLs
+function getDirectImageUrl(url: string): string {
+    if (!url) return '';
+    const trimmedUrl = url.trim();
+
+    // Google Drive typical sharing links
+    // 1. https://drive.google.com/file/d/THE_ID/view...
+    // 2. https://drive.google.com/open?id=THE_ID
+    if (trimmedUrl.includes('drive.google.com') || trimmedUrl.includes('docs.google.com')) {
+        let id = '';
+        const parts = trimmedUrl.split(/\/d\/|id=/);
+        if (parts.length > 1) {
+            // Extract content after /d/ or id=
+            const sub = parts[1].split(/[/?&]/)[0]; // Stop at next / or ? or &
+            if (sub && sub.length > 20) {
+                id = sub;
+            }
+        }
+
+        if (id) {
+            return `https://drive.google.com/uc?export=view&id=${id}`;
+        }
+    }
+
+    return trimmedUrl;
+}
+
 function transformPackage(raw: RawPackage): Package {
     return {
         slug: raw.slug || '',
@@ -69,7 +96,7 @@ function transformPackage(raw: RawPackage): Package {
         location: raw.location || '',
         description: raw.description || '',
         includes: raw.includes ? raw.includes.split('|').map(s => s.trim()) : [],
-        image_url: raw.image_url || '',
+        image_url: getDirectImageUrl(raw.image_url || ''),
         whatsapp_text: raw.whatsapp_text || '',
         active: raw.active?.toUpperCase() === 'TRUE',
         order: parseInt(raw.order || '0', 10),
@@ -88,7 +115,7 @@ interface RawGalleryItem {
 
 function transformGalleryItem(raw: RawGalleryItem): GalleryItem {
     return {
-        image_url: raw.image_url || '',
+        image_url: getDirectImageUrl(raw.image_url || ''),
         caption: raw.caption || '',
         location: raw.location || 'Destinations',
         is_cover: raw.is_cover?.toUpperCase() === 'TRUE',
