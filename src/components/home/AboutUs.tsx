@@ -1,5 +1,14 @@
+import Image from 'next/image';
+
 export function AboutUs() {
-    const destinations = ['Bali', 'Dubai', 'Thailand', 'Europe', 'Sri Lanka', 'India'];
+    const destinations = [
+        { name: 'Bali', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&h=300&fit=crop' },
+        { name: 'Dubai', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&h=300&fit=crop' },
+        { name: 'Thailand', image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop' },
+        { name: 'Europe', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=300&fit=crop' },
+        { name: 'Sri Lanka', image: 'https://images.unsplash.com/photo-1586523969195-fb49e3388c1f?w=400&h=300&fit=crop' },
+        { name: 'India', image: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop' },
+    ];
 
     return (
         <section className="py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-800">
@@ -54,28 +63,32 @@ export function AboutUs() {
                     {/* Destinations Visual */}
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-3xl blur-3xl"></div>
-                        <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8">
+                        <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-6 md:p-8">
                             <h3 className="text-xl font-semibold text-white mb-6 text-center">
                                 Popular Destinations We Cover
                             </h3>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                {destinations.map((destination, index) => (
+                                {destinations.map((destination) => (
                                     <div
-                                        key={destination}
-                                        className="group p-4 bg-slate-700/30 hover:bg-gradient-to-r hover:from-amber-500/20 hover:to-orange-500/20 rounded-xl border border-slate-600/30 hover:border-amber-500/50 transition-all duration-300 text-center cursor-pointer"
-                                        style={{ animationDelay: `${index * 100}ms` }}
+                                        key={destination.name}
+                                        className="group relative overflow-hidden rounded-xl cursor-pointer"
                                     >
-                                        <div className="text-2xl mb-2">
-                                            {destination === 'Bali' && '🏝️'}
-                                            {destination === 'Dubai' && '🏙️'}
-                                            {destination === 'Thailand' && '🛕'}
-                                            {destination === 'Europe' && '🏰'}
-                                            {destination === 'Sri Lanka' && '🌴'}
-                                            {destination === 'India' && '🇮🇳'}
+                                        <div className="aspect-[4/3] relative">
+                                            <Image
+                                                src={destination.image}
+                                                alt={destination.name}
+                                                fill
+                                                className="object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                            <div className="absolute inset-0 bg-amber-500/0 group-hover:bg-amber-500/20 transition-colors duration-300"></div>
                                         </div>
-                                        <span className="text-slate-300 group-hover:text-white font-medium transition-colors">
-                                            {destination}
-                                        </span>
+                                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                                            <span className="text-white font-semibold text-sm md:text-base drop-shadow-lg">
+                                                {destination.name}
+                                            </span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -110,3 +123,4 @@ export function AboutUs() {
         </section>
     );
 }
+
