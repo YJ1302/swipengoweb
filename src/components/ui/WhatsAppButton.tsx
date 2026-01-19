@@ -3,7 +3,7 @@
 interface WhatsAppButtonProps {
     message?: string;
     size?: 'sm' | 'md' | 'lg';
-    variant?: 'primary' | 'secondary';
+    variant?: 'primary' | 'secondary' | 'outline-white';
     className?: string;
     children?: React.ReactNode;
 }
@@ -27,6 +27,7 @@ export function WhatsAppButton({
     const variantClasses = {
         primary: 'bg-brand-primary hover:bg-brand-accent text-brand-navy shadow-lg shadow-brand-primary/25',
         secondary: 'bg-transparent text-brand-navy border border-brand-navy hover:bg-brand-secondary hover:text-white hover:border-transparent',
+        'outline-white': 'bg-transparent text-white border border-white hover:bg-white hover:text-brand-navy',
     };
 
     return (

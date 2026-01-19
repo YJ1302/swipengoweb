@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { WhatsAppButton } from '../ui/WhatsAppButton';
 
 export function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -54,9 +53,6 @@ export function Header() {
                         >
                             Contact
                         </a>
-                        <div className="ml-4">
-                            <WhatsAppButton size="sm" />
-                        </div>
                     </nav>
 
                     {/* Mobile Menu Button */}
@@ -99,9 +95,6 @@ export function Header() {
                             >
                                 Contact
                             </a>
-                            <div className="px-4 pt-2">
-                                <WhatsAppButton className="w-full justify-center" />
-                            </div>
                         </nav>
                     </div>
                 )}

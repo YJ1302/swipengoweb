@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getGalleryLocations } from "@/lib/sheets";
 import { LocationGallery } from "@/components/gallery/LocationGallery";
 import { LocationGroup } from "@/types";
+import { AnimatedTitle } from "@/components/ui/animations/AnimatedTitle";
 
 export const metadata: Metadata = {
     title: "Gallery | Swipe N Go Vacations",
@@ -133,12 +134,11 @@ export default async function GalleryPage() {
                 </div>
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
-                        Travel <span className="text-brand-primary">Gallery</span>
-                    </h1>
-                    <p className="text-slate-300 max-w-2xl mx-auto text-lg leading-relaxed">
-                        Explore our world through the lens. From serene beaches to bustling cities, discover the memories created by our happy travelers.
-                    </p>
+                    <AnimatedTitle
+                        prefix="Travel"
+                        highlight="Gallery"
+                        description="Explore our world through the lens. From serene beaches to bustling cities, discover the memories created by our happy travelers."
+                    />
                 </div>
             </section>
 

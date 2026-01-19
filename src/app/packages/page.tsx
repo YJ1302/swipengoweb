@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getPackages } from "@/lib/sheets";
 import { PackageGrid } from "@/components/packages/PackageGrid";
 import { Package } from "@/types";
+import { AnimatedTitle } from "@/components/ui/animations/AnimatedTitle";
 
 export const metadata: Metadata = {
     title: "Travel Packages",
@@ -108,12 +109,11 @@ export default async function PackagesPage() {
                 </div>
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
-                        Travel <span className="text-brand-primary">Packages</span>
-                    </h1>
-                    <p className="text-slate-300 max-w-2xl mx-auto text-lg leading-relaxed">
-                        Discover our handpicked vacation packages designed to give you unforgettable experiences at the best prices.
-                    </p>
+                    <AnimatedTitle
+                        prefix="Travel"
+                        highlight="Packages"
+                        description="Discover our handpicked vacation packages designed to give you unforgettable experiences at the best prices."
+                    />
                 </div>
             </section>
 

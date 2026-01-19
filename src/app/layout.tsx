@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 };
 
 import { Preloader } from "@/components/ui/Preloader";
+import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 export default function RootLayout({
   children,
@@ -45,10 +46,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} antialiased bg-slate-900 text-white min-h-screen`}>
-        <Preloader />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <LoadingProvider>
+          <Preloader />
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </LoadingProvider>
       </body>
     </html>
   );

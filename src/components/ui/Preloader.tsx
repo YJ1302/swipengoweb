@@ -2,26 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { useLoading } from '../providers/LoadingProvider';
 
 export function Preloader() {
-    const [loading, setLoading] = useState(true);
+    const { isLoading } = useLoading();
     const [visible, setVisible] = useState(true);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-            // Remove from DOM after transition
-            setTimeout(() => setVisible(false), 500);
-        }, 3000);
-
-        return () => clearTimeout(timer);
-    }, []);
+        if (!isLoading) {
+            // Remove from DOM after fade out transition (500ms)
+            const timer = setTimeout(() => setVisible(false), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoading]);
 
     if (!visible) return null;
 
     return (
         <div
-            className={`fixed inset-0 z-[100] flex items-center justify-center bg-brand-navy/95 backdrop-blur-md transition-opacity duration-500 ${loading ? 'opacity-100' : 'opacity-0'
+            className={`fixed inset-0 z-[100] flex items-center justify-center bg-brand-navy/95 backdrop-blur-md transition-opacity duration-500 ${isLoading ? 'opacity-100' : 'opacity-0'
                 }`}
         >
             <div className="w-64 h-64 md:w-80 md:h-80">

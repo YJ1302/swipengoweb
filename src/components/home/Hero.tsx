@@ -7,7 +7,10 @@ import { WhatsAppButton } from '../ui/WhatsAppButton';
 import { CountUp } from '../ui/animations/CountUp';
 import { StaggerGrid, StaggerItem } from '../ui/animations/Stagger';
 
+import { useLoading } from '../providers/LoadingProvider';
+
 export function Hero() {
+    const { isLoading } = useLoading();
     const ref = useRef(null);
     const { scrollYProgress } = useScroll({
         target: ref,
@@ -71,8 +74,8 @@ export function Hero() {
 
                 <motion.h1
                     initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
+                    animate={!isLoading ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                    transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                     className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 tracking-tight drop-shadow-xl"
                 >
                     Unforgettable
@@ -82,7 +85,7 @@ export function Hero() {
 
                 <motion.p
                     initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    animate={!isLoading ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                     transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
                     className="text-lg sm:text-xl text-slate-200 max-w-2xl mx-auto mb-8 leading-relaxed font-light drop-shadow-md"
                 >
@@ -92,7 +95,7 @@ export function Hero() {
 
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    animate={!isLoading ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
                     transition={{ duration: 0.8, delay: 0.8, ease: 'easeOut' }}
                     className="flex flex-col sm:flex-row items-center justify-center gap-4"
                 >
@@ -106,7 +109,7 @@ export function Hero() {
                         </svg>
                     </Link>
                     <div className="w-full sm:w-auto transform hover:scale-105 transition-transform duration-300">
-                        <WhatsAppButton size="lg" variant="secondary" className="w-full shadow-lg hover:shadow-white/10" />
+                        <WhatsAppButton size="lg" variant="outline-white" className="w-full shadow-lg hover:shadow-white/10" />
                     </div>
                 </motion.div>
 
