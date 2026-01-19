@@ -24,7 +24,7 @@ export function AboutUs() {
                             <span className="text-amber-400">2024</span>
                         </h2>
                         <p className="text-slate-300 text-lg mb-6 leading-relaxed">
-                            Swipe N Go Vacations is a License travel agency offering personalized domestic and international travel solutions. Whether it&apos;s a family holiday, romantic honeymoon, or group adventure, we craft each experience to match your style and budget.
+                            Swipe N Go Vacations is a Licensed travel agency offering personalized domestic and international travel solutions. Whether it&apos;s a family holiday, romantic honeymoon, or group adventure, we craft each experience to match your style and budget.
                         </p>
                         <p className="text-slate-400 mb-8 leading-relaxed">
                             Founded in 2024, we are committed to providing seamless travel planning, transparent pricing, and real-time assistance. We&apos;ve been connecting travelers to destinations with verified support and expert guidance.
