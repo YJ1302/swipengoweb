@@ -35,6 +35,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Preloader } from "@/components/ui/Preloader";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,6 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} antialiased bg-slate-900 text-white min-h-screen`}>
+        <Preloader />
         <Header />
         <main>{children}</main>
         <Footer />

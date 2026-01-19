@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { Package, GalleryItem } from '@/types';
+import { Package, GalleryItem, LocationGroup } from '@/types';
 
 const SHEET_ID = process.env.SHEET_ID;
 
@@ -80,6 +80,8 @@ function transformPackage(raw: RawPackage): Package {
 interface RawGalleryItem {
     image_url?: string;
     caption?: string;
+    location?: string;
+    is_cover?: string;
     active?: string;
     order?: string;
 }
@@ -88,6 +90,8 @@ function transformGalleryItem(raw: RawGalleryItem): GalleryItem {
     return {
         image_url: raw.image_url || '',
         caption: raw.caption || '',
+        location: raw.location || 'Destinations',
+        is_cover: raw.is_cover?.toUpperCase() === 'TRUE',
         active: raw.active?.toUpperCase() === 'TRUE',
         order: parseInt(raw.order || '0', 10),
     };
@@ -117,4 +121,29 @@ export async function getGallery(): Promise<GalleryItem[]> {
         .map(transformGalleryItem)
         .filter(item => item.active && item.image_url)
         .sort((a, b) => a.order - b.order);
+}
+
+export async function getGalleryLocations(): Promise<LocationGroup[]> {
+    const items = await getGallery();
+    const groups: Record<string, GalleryItem[]> = {};
+
+    items.forEach(item => {
+        const loc = item.location || 'Other';
+        if (!groups[loc]) {
+            groups[loc] = [];
+        }
+        groups[loc].push(item);
+    });
+
+    return Object.keys(groups).map(location => {
+        const photos = groups[location];
+        // Priority: is_cover=true, then lowest order (which they are already sorted by)
+        const coverImage = photos.find(p => p.is_cover) || photos[0];
+
+        return {
+            name: location,
+            coverImage,
+            photos
+        };
+    });
 }

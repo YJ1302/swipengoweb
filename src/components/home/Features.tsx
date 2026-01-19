@@ -1,3 +1,8 @@
+'use client';
+
+import { Reveal } from '../ui/animations/Reveal';
+import { StaggerGrid, StaggerItem } from '../ui/animations/Stagger';
+
 const features = [
     {
         icon: (
@@ -30,25 +35,29 @@ const features = [
 
 export function Features() {
     return (
-        <section className="py-20 bg-slate-900">
+        <section className="py-20 bg-slate-900 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                        Why Choose <span className="text-amber-400">Us</span>
-                    </h2>
-                    <p className="text-slate-400 max-w-2xl mx-auto">
-                        We go above and beyond to make your travel experience exceptional
-                    </p>
+                    <Reveal>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                            Why Choose <span className="text-amber-400">Us</span>
+                        </h2>
+                    </Reveal>
+                    <Reveal delay={0.1}>
+                        <p className="text-slate-400 max-w-2xl mx-auto">
+                            We go above and beyond to make your travel experience exceptional
+                        </p>
+                    </Reveal>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-8" staggerDelay={0.2}>
                     {features.map((feature, index) => (
-                        <div
+                        <StaggerItem
                             key={index}
                             className="group relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800 hover:border-amber-500/50 transition-all duration-300"
                         >
                             {/* Icon */}
-                            <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-amber-500/20">
                                 {feature.icon}
                             </div>
 
@@ -58,10 +67,11 @@ export function Features() {
 
                             {/* Hover Glow */}
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                        </div>
+                        </StaggerItem>
                     ))}
-                </div>
+                </StaggerGrid>
             </div>
         </section>
     );
 }
+

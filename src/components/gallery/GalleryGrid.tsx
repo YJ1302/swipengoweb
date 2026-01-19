@@ -1,10 +1,18 @@
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
 import { GalleryItem } from '@/types';
+import { StaggerGrid, StaggerItem } from '../ui/animations/Stagger';
+import { Lightbox } from '../ui/animations/Lightbox';
 
 interface GalleryGridProps {
     items: GalleryItem[];
 }
 
 export function GalleryGrid({ items }: GalleryGridProps) {
+    const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+
     if (items.length === 0) {
         return (
             <div className="text-center py-16">
@@ -22,26 +30,41 @@ export function GalleryGrid({ items }: GalleryGridProps) {
     }
 
     return (
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-            {items.map((item, index) => (
-                <div
-                    key={index}
-                    className="break-inside-avoid group relative overflow-hidden rounded-2xl bg-slate-800"
-                >
-                    <img
-                        src={item.image_url}
-                        alt={item.caption || 'Gallery image'}
-                        className="w-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {item.caption && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div className="absolute bottom-0 left-0 right-0 p-4">
-                                <p className="text-white text-sm">{item.caption}</p>
+        <>
+            <StaggerGrid className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+                {items.map((item, index) => (
+                    <StaggerItem
+                        key={index}
+                        className="break-inside-avoid group relative overflow-hidden rounded-2xl bg-slate-800 cursor-pointer"
+                    >
+                        <div
+                            onClick={() => setSelectedImage({ src: item.image_url, alt: item.caption || 'Gallery Image' })}
+                        >
+                            <Image
+                                src={item.image_url}
+                                alt={item.caption || 'Gallery image'}
+                                width={800}
+                                height={600}
+                                className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div className="absolute bottom-0 left-0 right-0 p-4">
+                                    <p className="text-white text-sm font-medium">{item.caption}</p>
+                                </div>
                             </div>
                         </div>
-                    )}
-                </div>
-            ))}
-        </div>
+                    </StaggerItem>
+                ))}
+            </StaggerGrid>
+
+            {/* Lightbox */}
+            <Lightbox
+                src={selectedImage?.src || null}
+                alt={selectedImage?.alt || ''}
+                onClose={() => setSelectedImage(null)}
+            />
+        </>
     );
 }
+

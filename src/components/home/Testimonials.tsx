@@ -1,3 +1,9 @@
+'use client';
+
+import Image from 'next/image';
+import { Reveal } from '../ui/animations/Reveal';
+import { StaggerGrid, StaggerItem } from '../ui/animations/Stagger';
+
 const testimonials = [
     {
         name: 'Maria Rodriguez',
@@ -24,22 +30,26 @@ const testimonials = [
 
 export function Testimonials() {
     return (
-        <section className="py-20 bg-slate-800">
+        <section className="py-20 bg-slate-800 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                        What Our <span className="text-amber-400">Travelers</span> Say
-                    </h2>
-                    <p className="text-slate-400 max-w-2xl mx-auto">
-                        Real experiences from real travelers who trusted us with their dream vacations
-                    </p>
+                    <Reveal>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                            What Our <span className="text-amber-400">Travelers</span> Say
+                        </h2>
+                    </Reveal>
+                    <Reveal delay={0.1}>
+                        <p className="text-slate-400 max-w-2xl mx-auto">
+                            Real experiences from real travelers who trusted us with their dream vacations
+                        </p>
+                    </Reveal>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <StaggerGrid className="grid grid-cols-1 md:grid-cols-3 gap-8" staggerDelay={0.2}>
                     {testimonials.map((testimonial, index) => (
-                        <div
+                        <StaggerItem
                             key={index}
-                            className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:border-amber-500/30 transition-all duration-300"
+                            className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:border-amber-500/30 transition-all duration-300 transform hover:scale-105"
                         >
                             {/* Stars */}
                             <div className="flex space-x-1 mb-4">
@@ -55,20 +65,24 @@ export function Testimonials() {
 
                             {/* Author */}
                             <div className="flex items-center space-x-3">
-                                <img
-                                    src={testimonial.image}
-                                    alt={testimonial.name}
-                                    className="w-12 h-12 rounded-full object-cover"
-                                />
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                                    <Image
+                                        src={testimonial.image}
+                                        alt={testimonial.name}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                </div>
                                 <div>
                                     <p className="text-white font-semibold">{testimonial.name}</p>
                                     <p className="text-slate-500 text-sm">{testimonial.location}</p>
                                 </div>
                             </div>
-                        </div>
+                        </StaggerItem>
                     ))}
-                </div>
+                </StaggerGrid>
             </div>
         </section>
     );
 }
+

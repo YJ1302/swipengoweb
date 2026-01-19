@@ -17,7 +17,7 @@ export function Header() {
     ];
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-brand-navy/95 backdrop-blur-md border-b border-white/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Logo */}
@@ -40,7 +40,7 @@ export function Header() {
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className="px-4 py-2 text-slate-300 hover:text-white font-medium rounded-lg hover:bg-slate-800/50 transition-all duration-200"
+                                className="px-4 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200"
                             >
                                 {link.label}
                             </Link>
@@ -50,7 +50,7 @@ export function Header() {
                             href={whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 text-slate-300 hover:text-white font-medium rounded-lg hover:bg-slate-800/50 transition-all duration-200"
+                            className="px-4 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200"
                         >
                             Contact
                         </a>
@@ -62,7 +62,7 @@ export function Header() {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800/50 transition-colors"
+                        className="md:hidden p-2 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
                         aria-label="Toggle menu"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,14 +77,14 @@ export function Header() {
 
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-slate-800">
+                    <div className="md:hidden py-4 border-t border-white/10">
                         <nav className="flex flex-col space-y-1">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className="px-4 py-3 text-slate-300 hover:text-white font-medium rounded-lg hover:bg-slate-800/50 transition-all duration-200"
+                                    className="px-4 py-3 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200"
                                 >
                                     {link.label}
                                 </Link>
@@ -95,7 +95,7 @@ export function Header() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="px-4 py-3 text-slate-300 hover:text-white font-medium rounded-lg hover:bg-slate-800/50 transition-all duration-200"
+                                className="px-4 py-3 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200"
                             >
                                 Contact
                             </a>

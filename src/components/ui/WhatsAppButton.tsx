@@ -25,8 +25,8 @@ export function WhatsAppButton({
     };
 
     const variantClasses = {
-        primary: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg shadow-green-500/25',
-        secondary: 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700',
+        primary: 'bg-brand-primary hover:bg-brand-accent text-brand-navy shadow-lg shadow-brand-primary/25',
+        secondary: 'bg-transparent text-brand-navy border border-brand-navy hover:bg-brand-secondary hover:text-white hover:border-transparent',
     };
 
     return (

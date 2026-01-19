@@ -17,8 +17,16 @@ export interface Package {
 export interface GalleryItem {
   image_url: string;
   caption: string;
+  location: string;
+  is_cover: boolean;
   active: boolean;
   order: number;
+}
+
+export interface LocationGroup {
+  name: string;
+  coverImage: GalleryItem;
+  photos: GalleryItem[];
 }
 
 export interface Testimonial {
