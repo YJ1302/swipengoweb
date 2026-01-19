@@ -6,7 +6,7 @@ export function AboutUs() {
         { name: 'Dubai', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&h=300&fit=crop' },
         { name: 'Thailand', image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop' },
         { name: 'Europe', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=300&fit=crop' },
-        { name: 'Sri Lanka', image: 'https://images.unsplash.com/photo-1586523969195-fb49e3388c1f?w=400&h=300&fit=crop' },
+        { name: 'Sri Lanka', image: 'https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?auto=format&fit=crop&w=400&h=300' },
         { name: 'India', image: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop' },
     ];
 
