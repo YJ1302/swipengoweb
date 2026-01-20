@@ -32,7 +32,15 @@ async function fetchSheetData<T>(tabName: string): Promise<T[]> {
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    resolve(results.data);
+                    // Normalize keys to lowercase and trim
+                    const normalizedData = results.data.map((row: any) => {
+                        const newRow: any = {};
+                        Object.keys(row).forEach(key => {
+                            newRow[key.trim().toLowerCase()] = row[key];
+                        });
+                        return newRow;
+                    });
+                    resolve(normalizedData as T[]);
                 },
                 error: (error: Error) => {
                     reject(error);
@@ -228,27 +236,29 @@ export async function getPackages(): Promise<Package[]> {
     const packages = rawData
         .map(transformPackage)
         .filter(pkg => {
-            if (!pkg.active) {
-                console.log(`[Packages Debug] Skipped "${pkg.slug || '(no slug)'}": inactive`);
-                return false;
-            }
-            if (!pkg.slug) {
-                console.log(`[Packages Debug] Skipped row: missing slug`);
-                return false;
-            }
-            if (!pkg.lat || pkg.lat === 0) {
-                console.log(`[Packages Debug] Skipped "${pkg.slug}": missing lat`);
-                return false;
-            }
-            if (!pkg.lng || pkg.lng === 0) {
-                console.log(`[Packages Debug] Skipped "${pkg.slug}": missing lng`);
-                return false;
-            }
+            if (!pkg.active) return false;
+            // Strict valid coordinate check
+            if (!pkg.lat || pkg.lat === 0 || isNaN(pkg.lat)) return false;
+            if (!pkg.lng || pkg.lng === 0 || isNaN(pkg.lng)) return false;
             return true;
         })
         .sort((a, b) => a.order - b.order);
 
-    console.log(`[Packages Debug] Rendered ${packages.length} packages`);
+    if (process.env.NODE_ENV === 'development') {
+        const total = rawData.length;
+        const activeCount = rawData.filter(r => isTruthy(r.active)).length;
+        const validCoordsCount = packages.length;
+
+        console.log(`[Packages Debug] Fetch Summary:
+        - Total Rows: ${total}
+        - Active Rows: ${activeCount}
+        - Renderable (Active + Valid Coords): ${validCoordsCount}`);
+
+        if (total > 0 && validCoordsCount === 0) {
+            console.warn('[Packages Debug] No packages renderable! Check active flag or lat/lng parsing.');
+        }
+    }
+
     return packages;
 }
 

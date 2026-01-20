@@ -20,15 +20,68 @@ export function QuoteForm({ initialDestination = '' }: QuoteFormProps) {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setSubmitError(null);
 
-        // Build WhatsApp message
+        const scriptUrl = process.env.NEXT_PUBLIC_LEADS_SCRIPT_URL;
+        let leadSaved = false;
+
+        // 1. Send data to Google Sheet (if configured)
+        if (scriptUrl) {
+            try {
+                const payload = {
+                    name: formData.name,
+                    phone: formData.phone,
+                    destination: formData.destination,
+                    travel_month: formData.travel_month,
+                    num_people: formData.num_people,
+                    budget_range: formData.budget_range,
+                    notes: formData.notes,
+                    source: (typeof window !== 'undefined' ? window.location.pathname : 'Quote Page'),
+                };
+
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('[QuoteForm] Sending lead to:', scriptUrl);
+                    console.log('[QuoteForm] Payload:', payload);
+                }
+
+                // Send as JSON - the Apps Script can now handle plain POST
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // Required for cross-origin GAS requests
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                // Since no-cors mode, we can't read response, but we got here without error
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('[QuoteForm] Lead request sent (no-cors mode, response opaque)');
+                }
+
+                leadSaved = true; // Assume success with no-cors
+                await new Promise(resolve => setTimeout(resolve, 500));
+            } catch (error) {
+                console.error('[QuoteForm] Failed to save lead:', error);
+                setSubmitError('Your information may not have been saved. Please contact us directly if you don\'t receive a response.');
+                // Continue to WhatsApp anyway
+            }
+        } else {
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('[QuoteForm] NEXT_PUBLIC_LEADS_SCRIPT_URL is not configured');
+            }
+        }
+
+        // 2. Build WhatsApp message
         const message = `🌴 *New Quote Request*
 
 *Name:* ${formData.name}
@@ -44,11 +97,16 @@ ${formData.notes || 'None'}
 ---
 Sent from Swipe N Go Vacations Website`;
 
-        // Open WhatsApp
+        // 3. Open WhatsApp
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
 
         setIsSubmitting(false);
+
+        // Show success feedback if lead was saved
+        if (leadSaved && !submitError) {
+            // Could add a success toast here
+        }
     };
 
     const inputClasses = "w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary/50 transition-all";
@@ -179,6 +237,13 @@ Sent from Swipe N Go Vacations Website`;
                     className={inputClasses + " resize-none"}
                 />
             </div>
+
+            {/* Error Message */}
+            {submitError && (
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400 text-sm text-center">
+                    ⚠️ {submitError}
+                </div>
+            )}
 
             {/* Submit */}
             <button
