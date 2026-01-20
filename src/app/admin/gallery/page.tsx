@@ -38,7 +38,7 @@ export default function AdminGalleryPage() {
             const data = await res.json();
             setGallery(data.gallery || []);
             // Auto-expand all locations initially
-            const locations = new Set((data.gallery || []).map((item: GalleryItem) => item.location || 'Other'));
+            const locations = new Set<string>((data.gallery || []).map((item: GalleryItem) => String(item.location || 'Other')));
             setExpandedLocations(locations);
         } catch (error) {
             console.error('Failed to fetch gallery:', error);
