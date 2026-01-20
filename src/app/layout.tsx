@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Preloader } from "@/components/ui/Preloader";
+import { LoadingProvider } from "@/components/providers/LoadingProvider";
+import { MobileCTA } from "@/components/ui/MobileCTA";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,9 +38,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { Preloader } from "@/components/ui/Preloader";
-import { LoadingProvider } from "@/components/providers/LoadingProvider";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -49,10 +49,12 @@ export default function RootLayout({
         <LoadingProvider>
           <Preloader />
           <Header />
-          <main>{children}</main>
+          <main className="pb-20 md:pb-0">{children}</main>
           <Footer />
+          <MobileCTA />
         </LoadingProvider>
       </body>
     </html>
   );
 }
+

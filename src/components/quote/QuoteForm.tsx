@@ -1,0 +1,200 @@
+'use client';
+
+import { useState } from 'react';
+
+interface QuoteFormProps {
+    initialDestination?: string;
+}
+
+const WHATSAPP_NUMBER = '917620011714';
+
+export function QuoteForm({ initialDestination = '' }: QuoteFormProps) {
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        destination: initialDestination,
+        travel_month: '',
+        num_people: '2',
+        budget_range: '',
+        notes: ''
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        // Build WhatsApp message
+        const message = `🌴 *New Quote Request*
+
+*Name:* ${formData.name}
+*Phone:* ${formData.phone}
+*Destination:* ${formData.destination || 'Open to suggestions'}
+*Travel Month:* ${formData.travel_month || 'Flexible'}
+*Number of People:* ${formData.num_people}
+*Budget Range:* ${formData.budget_range || 'Not specified'}
+
+*Additional Notes:*
+${formData.notes || 'None'}
+
+---
+Sent from Swipe N Go Vacations Website`;
+
+        // Open WhatsApp
+        const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+
+        setIsSubmitting(false);
+    };
+
+    const inputClasses = "w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary/50 transition-all";
+    const labelClasses = "block text-sm font-medium text-slate-300 mb-2";
+
+    return (
+        <form onSubmit={handleSubmit} className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 md:p-8 space-y-6">
+            {/* Name & Phone */}
+            <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="name" className={labelClasses}>Your Name *</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="John Doe"
+                        className={inputClasses}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="phone" className={labelClasses}>Phone Number *</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        required
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="+1 234 567 8900"
+                        className={inputClasses}
+                    />
+                </div>
+            </div>
+
+            {/* Destination */}
+            <div>
+                <label htmlFor="destination" className={labelClasses}>Preferred Destination</label>
+                <input
+                    type="text"
+                    id="destination"
+                    name="destination"
+                    value={formData.destination}
+                    onChange={handleChange}
+                    placeholder="e.g., Goa, Maldives, Bali..."
+                    className={inputClasses}
+                />
+            </div>
+
+            {/* Travel Month & Number of People */}
+            <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="travel_month" className={labelClasses}>Travel Month</label>
+                    <select
+                        id="travel_month"
+                        name="travel_month"
+                        value={formData.travel_month}
+                        onChange={handleChange}
+                        className={inputClasses}
+                    >
+                        <option value="">Select month</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                        <option value="Flexible">I'm flexible</option>
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="num_people" className={labelClasses}>Number of Travelers</label>
+                    <select
+                        id="num_people"
+                        name="num_people"
+                        value={formData.num_people}
+                        onChange={handleChange}
+                        className={inputClasses}
+                    >
+                        <option value="1">1 Person</option>
+                        <option value="2">2 People</option>
+                        <option value="3">3 People</option>
+                        <option value="4">4 People</option>
+                        <option value="5">5 People</option>
+                        <option value="6+">6+ People</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Budget Range */}
+            <div>
+                <label htmlFor="budget_range" className={labelClasses}>Budget Range (per person)</label>
+                <select
+                    id="budget_range"
+                    name="budget_range"
+                    value={formData.budget_range}
+                    onChange={handleChange}
+                    className={inputClasses}
+                >
+                    <option value="">Select budget range</option>
+                    <option value="Under ₹10,000">Under ₹10,000</option>
+                    <option value="₹10,000 - ₹25,000">₹10,000 - ₹25,000</option>
+                    <option value="₹25,000 - ₹50,000">₹25,000 - ₹50,000</option>
+                    <option value="₹50,000 - ₹1,00,000">₹50,000 - ₹1,00,000</option>
+                    <option value="Above ₹1,00,000">Above ₹1,00,000</option>
+                    <option value="Flexible">Flexible / Not sure</option>
+                </select>
+            </div>
+
+            {/* Notes */}
+            <div>
+                <label htmlFor="notes" className={labelClasses}>Additional Notes</label>
+                <textarea
+                    id="notes"
+                    name="notes"
+                    rows={3}
+                    value={formData.notes}
+                    onChange={handleChange}
+                    placeholder="Tell us more about your ideal vacation (special occasions, preferences, etc.)"
+                    className={inputClasses + " resize-none"}
+                />
+            </div>
+
+            {/* Submit */}
+            <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 bg-brand-primary hover:bg-brand-primary/90 text-brand-navy font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-primary/20 disabled:opacity-50"
+            >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                {isSubmitting ? 'Opening WhatsApp...' : 'Send Quote Request via WhatsApp'}
+            </button>
+
+            <p className="text-center text-slate-500 text-xs">
+                By submitting, you&apos;ll be redirected to WhatsApp to complete your request.
+            </p>
+        </form>
+    );
+}
