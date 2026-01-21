@@ -214,6 +214,7 @@ interface RawGalleryItem {
     is_cover?: string;
     active?: string;
     order?: string;
+    section?: string;
 }
 
 function transformGalleryItem(raw: RawGalleryItem): GalleryItem {
@@ -229,7 +230,7 @@ function transformGalleryItem(raw: RawGalleryItem): GalleryItem {
 
 // Get all active packages, sorted by order
 export async function getPackages(): Promise<Package[]> {
-    const rawData = await fetchSheetData<RawPackage>('packages');
+    const rawData = await fetchSheetData<RawPackage>('Packages');
 
     console.log(`[Packages Debug] Total rows from sheet: ${rawData.length}`);
 
@@ -264,7 +265,7 @@ export async function getPackages(): Promise<Package[]> {
 
 // Get all packages (including those without coords) for detail pages
 export async function getAllPackages(): Promise<Package[]> {
-    const rawData = await fetchSheetData<RawPackage>('packages');
+    const rawData = await fetchSheetData<RawPackage>('Packages');
 
     return rawData
         .map(transformPackage)
@@ -280,9 +281,13 @@ export async function getPackageBySlug(slug: string): Promise<Package | null> {
 
 // Get all active gallery items, sorted by order
 export async function getGallery(): Promise<GalleryItem[]> {
-    const rawData = await fetchSheetData<RawGalleryItem>('gallery');
+    const rawData = await fetchSheetData<RawGalleryItem>('Gallery');
 
     return rawData
+        .filter(item => {
+            const section = (item.section || '').toLowerCase();
+            return section !== 'homepage';
+        })
         .map(transformGalleryItem)
         .filter(item => item.active && item.image_url)
         .sort((a, b) => a.order - b.order);

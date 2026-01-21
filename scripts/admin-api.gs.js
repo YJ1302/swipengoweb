@@ -101,7 +101,8 @@ function createResponse(payload, ok, status) {
 
 function getSheetData(sheetName) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-    if (!sheet) throw new Error('Sheet not found: ' + sheetName);
+    if (!sheet) return []; // Return empty if sheet not found, don't crash
+
 
     var range = sheet.getDataRange();
     var values = range.getValues();
@@ -326,8 +327,9 @@ function getGallery() {
 }
 
 function addGalleryItem(e) {
-    // headers: image_url, caption, location, is_cover, active, order
-    var sheet = getOrCreateSheet('Gallery', ['image_url', 'caption', 'location', 'is_cover', 'active', 'order']);
+    // Correct headers based on actual sheet: image_url, caption, location, is_cover, active, order, section
+    // We update getOrCreateSheet to match this standard, though existing sheets prevail.
+    var sheet = getOrCreateSheet('Gallery', ['image_url', 'caption', 'location', 'is_cover', 'active', 'order', 'section']);
     var data = JSON.parse(e.postData.contents);
 
     if (!data.image_url) throw new Error('Image URL required');
@@ -342,7 +344,8 @@ function addGalleryItem(e) {
         (data.location || 'Other').toString().trim(),
         parseBoolean(data.is_cover) ? 'TRUE' : 'FALSE',
         parseBoolean(data.active) ? 'TRUE' : 'FALSE',
-        parseNumber(data.order)
+        parseNumber(data.order),
+        (data.section || 'gallery').toString().trim().toLowerCase() // 'homepage' or 'gallery'
     ]);
 
     return createResponse({ message: 'Gallery item added' }, true);

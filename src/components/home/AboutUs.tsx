@@ -10,9 +10,9 @@ export function AboutUs() {
         { name: 'Bali', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&h=300&fit=crop' },
         { name: 'Dubai', image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&h=300&fit=crop' },
         { name: 'Thailand', image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400&h=300&fit=crop' },
-        { name: 'Europe', image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=300&fit=crop' },
         { name: 'Sri Lanka', image: 'https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?auto=format&fit=crop&w=400&h=300' },
         { name: 'India', image: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop' },
+        { name: 'Vietnam', image: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?q=400&h=300&fit=crop' },
     ];
 
     return (
@@ -59,9 +59,9 @@ export function AboutUs() {
                             </StaggerItem>
                             <StaggerItem className="text-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
                                 <div className="text-2xl md:text-3xl font-bold text-brand-primary">
-                                    <CountUp end={100} suffix="%" />
+                                    <CountUp end={5} suffix="⭐" />
                                 </div>
-                                <div className="text-slate-500 text-sm">Support</div>
+                                <div className="text-slate-500 text-sm">Rated Service</div>
                             </StaggerItem>
                         </StaggerGrid>
 

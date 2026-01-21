@@ -15,16 +15,12 @@ const faqs: FAQ[] = [
         question: "What documents do I need to travel internationally?",
         answer: "You'll need a valid passport (with at least 6 months validity), relevant visa for your destination, travel insurance documents, flight tickets, and hotel booking confirmations. We provide a complete checklist once you book."
     },
-    {
-        category: "Visa & Documents",
-        question: "Do you help with visa applications?",
-        answer: "Yes! We provide complete visa assistance including documentation guidance, application form filling, and interview preparation for most destinations. The visa fee is additional and varies by country."
-    },
+
     // Payment
     {
         category: "Payment",
         question: "What payment methods do you accept?",
-        answer: "We accept bank transfers (NEFT/RTGS/IMPS), UPI payments, credit/debit cards, and partial payments through EMI options. A 30% advance is required to confirm your booking."
+        answer: "We accept bank transfers (NEFT/RTGS/IMPS), UPI payments, and credit/debit cards. A 30% advance is required to confirm your booking."
     },
     {
         category: "Payment",
@@ -89,8 +85,8 @@ export function FAQSection() {
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat
-                                    ? 'bg-brand-primary text-brand-navy'
-                                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                                ? 'bg-brand-primary text-brand-navy'
+                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                                 }`}
                         >
                             {cat === 'all' ? 'All Questions' : cat}
@@ -109,7 +105,7 @@ export function FAQSection() {
                                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                                 className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-700/30 transition-colors"
                             >
-                                <span className="font-medium text-white pr-4">{faq.question}</span>
+                                <span className="font-semibold text-white pr-4 text-lg">{faq.question}</span>
                                 <svg
                                     className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${openIndex === index ? 'rotate-180' : ''
                                         }`}
@@ -121,7 +117,7 @@ export function FAQSection() {
                                 </svg>
                             </button>
                             {openIndex === index && (
-                                <div className="px-6 pb-4 text-slate-300 leading-relaxed">
+                                <div className="px-6 pb-4 text-slate-200 leading-relaxed bg-slate-800/30">
                                     {faq.answer}
                                 </div>
                             )}

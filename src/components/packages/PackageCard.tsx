@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Package } from '@/types';
 import { WhatsAppButton } from '../ui/WhatsAppButton';
+import { formatPrice } from '@/utils/format';
 
 interface PackageCardProps {
     package: Package;
@@ -25,7 +26,7 @@ export function PackageCard({ package: pkg }: PackageCardProps) {
 
                 {/* Price Badge */}
                 <div className="absolute top-4 right-4 px-3 py-1.5 bg-brand-primary text-brand-navy text-sm font-bold rounded-full shadow-lg border border-white/20">
-                    {pkg.price}
+                    {formatPrice(pkg.price)}
                 </div>
 
                 {/* Location */}

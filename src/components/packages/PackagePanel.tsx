@@ -1,6 +1,7 @@
 'use client';
 
 import { Package } from '@/types';
+import { formatPrice, formatCoordinatesDMS } from '@/utils/format';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -62,7 +63,7 @@ export function PackagePanel({ pkg, onClose }: PackagePanelProps) {
 
                             {/* Price overlay */}
                             <div className="absolute bottom-4 right-4 text-right">
-                                <div className="text-2xl font-bold text-white drop-shadow-lg">{pkg.price}</div>
+                                <div className="text-2xl font-bold text-white drop-shadow-lg">{formatPrice(pkg.price)}</div>
                                 <div className="text-xs text-white/70">{pkg.duration}</div>
                             </div>
                         </div>
@@ -77,6 +78,15 @@ export function PackagePanel({ pkg, onClose }: PackagePanelProps) {
                                 </svg>
                                 {pkg.location}
                             </div>
+                            {/* Coordinates */}
+                            {(pkg.lat !== 0 || pkg.lng !== 0) && (
+                                <div className="flex items-center text-xs text-brand-primary/80 mb-4 ml-0.5 font-mono bg-brand-navy/50 px-2 py-1 rounded w-fit border border-brand-primary/20">
+                                    <svg className="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    </svg>
+                                    {formatCoordinatesDMS(pkg.lat, pkg.lng)}
+                                </div>
+                            )}
 
                             <p className="text-sm text-white/75 leading-relaxed mb-5 line-clamp-4">
                                 {pkg.description}

@@ -51,7 +51,7 @@ function OverviewContent() {
                 throw new Error(data.error);
             }
 
-            const leadsList = Array.isArray(data.leads) ? data.leads : [];
+            const leadsList = (Array.isArray(data.leads) ? data.leads : []).filter((l: any) => l && typeof l === 'object');
             setLeads(leadsList);
 
             // Calculate KPIs safely

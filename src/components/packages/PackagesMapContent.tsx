@@ -6,6 +6,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Package } from '@/types';
+import { formatPrice } from '@/utils/format';
 import { PackagePanel } from './PackagePanel';
 
 // --- ICONS ---
@@ -183,7 +184,7 @@ function Sidebar({ packages, searchQuery, setSearchQuery, durationFilter, setDur
                                             </svg>
                                             <span className="truncate">{pkg.location}</span>
                                         </div>
-                                        <div className="text-brand-primary text-xs font-bold mt-1">{pkg.price}</div>
+                                        <div className="text-brand-primary text-xs font-bold mt-1">{formatPrice(pkg.price)}</div>
                                     </div>
                                     <div className="p-2 text-white/20 group-hover:text-brand-primary transition-colors">
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

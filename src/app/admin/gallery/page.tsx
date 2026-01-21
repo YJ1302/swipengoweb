@@ -9,13 +9,14 @@ interface GalleryItem {
     image_url: string;
     caption: string;
     location: string;
+    section: 'homepage' | 'gallery';
     is_cover: string | boolean;
     active: string | boolean;
     order: number;
 }
 
 const EMPTY_ITEM: Omit<GalleryItem, '_rowIndex'> = {
-    image_url: '', caption: '', location: '', is_cover: false, active: true, order: 0
+    image_url: '', caption: '', location: '', section: 'gallery', is_cover: false, active: true, order: 0
 };
 
 export default function AdminGalleryPage() {
@@ -27,6 +28,7 @@ export default function AdminGalleryPage() {
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState<number | null>(null);
     const [expandedLocations, setExpandedLocations] = useState<Set<string>>(new Set());
+    const [activeTab, setActiveTab] = useState<'homepage' | 'gallery'>('gallery');
 
     useEffect(() => {
         fetchGallery();
@@ -47,19 +49,35 @@ export default function AdminGalleryPage() {
         }
     };
 
+    // Filter items based on active tab
+    const filteredGallery = useMemo(() => {
+        return gallery.filter(item => {
+            if (!item) return false;
+            const itemSection = String(item.section || 'gallery').toLowerCase();
+            return itemSection === activeTab;
+        });
+    }, [gallery, activeTab]);
+
     const groupedGallery = useMemo(() => {
         const groups: Record<string, GalleryItem[]> = {};
-        gallery.forEach(item => {
-            const loc = item.location || 'Other';
-            if (!groups[loc]) groups[loc] = [];
-            groups[loc].push(item);
-        });
-        // Sort by order within each group
+        if (activeTab === 'homepage') {
+            // No location grouping for homepage, just one group
+            groups['Slideshow Images'] = filteredGallery;
+        } else {
+            filteredGallery.forEach(item => {
+                if (!item) return;
+                const loc = String(item.location || 'Other');
+                if (!groups[loc]) groups[loc] = [];
+                groups[loc].push(item);
+            });
+        }
+
+        // Sort by order
         Object.keys(groups).forEach(key => {
             groups[key].sort((a, b) => (a.order || 0) - (b.order || 0));
         });
         return groups;
-    }, [gallery]);
+    }, [filteredGallery, activeTab]);
 
     const locations = useMemo(() => Object.keys(groupedGallery).sort(), [groupedGallery]);
 
@@ -74,7 +92,11 @@ export default function AdminGalleryPage() {
 
     const openAddModal = (location?: string) => {
         setEditingItem(null);
-        setFormData({ ...EMPTY_ITEM, location: location || '' });
+        setFormData({
+            ...EMPTY_ITEM,
+            location: location || (activeTab === 'homepage' ? 'Homepage' : ''),
+            section: activeTab
+        });
         setShowModal(true);
     };
 
@@ -84,6 +106,7 @@ export default function AdminGalleryPage() {
             image_url: item.image_url || '',
             caption: item.caption || '',
             location: item.location || '',
+            section: (item.section as 'homepage' | 'gallery') || 'gallery',
             is_cover: item.is_cover === 'TRUE' || item.is_cover === true,
             active: item.active === 'TRUE' || item.active === true,
             order: item.order || 0,
@@ -166,8 +189,8 @@ export default function AdminGalleryPage() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white">Gallery</h1>
-                        <p className="text-slate-400 mt-1">Manage your photo gallery by location</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white">Gallery Management</h1>
+                        <p className="text-slate-400 mt-1">Manage homepage slideshow and public gallery</p>
                     </div>
                     <button
                         onClick={() => openAddModal()}
@@ -180,14 +203,42 @@ export default function AdminGalleryPage() {
                     </button>
                 </div>
 
+                {/* Tabs */}
+                <div className="flex border-b border-white/10">
+                    <button
+                        onClick={() => setActiveTab('homepage')}
+                        className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'homepage'
+                            ? 'text-brand-primary'
+                            : 'text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        Homepage Slideshow
+                        {activeTab === 'homepage' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary" />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('gallery')}
+                        className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'gallery'
+                            ? 'text-brand-primary'
+                            : 'text-slate-400 hover:text-white'
+                            }`}
+                    >
+                        Public Gallery
+                        {activeTab === 'gallery' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary" />
+                        )}
+                    </button>
+                </div>
+
                 {/* Content */}
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
                         <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
                     </div>
-                ) : gallery.length === 0 ? (
+                ) : filteredGallery.length === 0 ? (
                     <div className="bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center">
-                        <p className="text-slate-400 mb-4">No images yet.</p>
+                        <p className="text-slate-400 mb-4">No images yet in {activeTab}.</p>
                         <button
                             onClick={() => openAddModal()}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-brand-primary hover:bg-brand-primary/90 text-brand-navy font-semibold rounded-xl transition-colors"
@@ -199,56 +250,71 @@ export default function AdminGalleryPage() {
                     <div className="space-y-4">
                         {locations.map(location => {
                             const items = groupedGallery[location];
-                            const coverImage = items.find(isCover);
-                            const isExpanded = expandedLocations.has(location);
+                            // Only find cover if we are in Gallery mode
+                            const coverImage = activeTab === 'gallery' ? items.find(isCover) : null;
+                            // For homepage, always expanded. For gallery, rely on state.
+                            const isExpanded = activeTab === 'homepage' ? true : expandedLocations.has(location);
 
                             return (
                                 <div key={location} className="bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-                                    {/* Location Header */}
-                                    <button
-                                        onClick={() => toggleLocation(location)}
-                                        className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            {coverImage ? (
-                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-700">
-                                                    <Image
-                                                        src={coverImage.image_url}
-                                                        alt={location}
-                                                        width={48}
-                                                        height={48}
-                                                        className="w-full h-full object-cover"
-                                                    />
+                                    {/* Location Header - Only for Gallery Mode (Homepage shows single block) */}
+                                    {activeTab === 'gallery' && (
+                                        <div
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={() => toggleLocation(location)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleLocation(location); }}
+                                            className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                {coverImage ? (
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-700">
+                                                        <Image
+                                                            src={coverImage.image_url}
+                                                            alt={location}
+                                                            width={48}
+                                                            height={48}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center">
+                                                        <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                <div className="text-left">
+                                                    <h3 className="text-white font-semibold">{location}</h3>
+                                                    <p className="text-slate-400 text-sm">{items.length} images</p>
                                                 </div>
-                                            ) : (
-                                                <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center">
-                                                    <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); openAddModal(location); }}
+                                                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                                     </svg>
-                                                </div>
-                                            )}
-                                            <div className="text-left">
-                                                <h3 className="text-white font-semibold">{location}</h3>
-                                                <p className="text-slate-400 text-sm">{items.length} images</p>
+                                                </button>
+                                                <svg
+                                                    className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); openAddModal(location); }}
-                                                className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                            </button>
-                                            <svg
-                                                className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
+                                    )}
+
+                                    {/* For homepage, simpler header */}
+                                    {activeTab === 'homepage' && (
+                                        <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                                            <h3 className="text-white font-semibold">Ordered Slideshow</h3>
+                                            <span className="text-slate-400 text-sm">{items.length} active slides</span>
                                         </div>
-                                    </button>
+                                    )}
 
                                     {/* Images Grid */}
                                     {isExpanded && (
@@ -259,19 +325,34 @@ export default function AdminGalleryPage() {
                                                         key={item._rowIndex}
                                                         className={`relative group rounded-xl overflow-hidden bg-slate-700 aspect-square ${!isActive(item) ? 'opacity-50' : ''}`}
                                                     >
-                                                        {item.image_url && (
+                                                        {item.image_url ? (
                                                             <Image
                                                                 src={item.image_url}
                                                                 alt={item.caption || 'Gallery image'}
                                                                 fill
                                                                 className="object-cover"
+                                                                onError={(e) => {
+                                                                    // Fallback or hide on error to prevent crash
+                                                                    e.currentTarget.style.display = 'none';
+                                                                }}
                                                             />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-600">
+                                                                <span className="text-xs">No Image</span>
+                                                            </div>
                                                         )}
 
-                                                        {/* Cover badge */}
-                                                        {isCover(item) && (
+                                                        {/* Cover badge (Gallery only) */}
+                                                        {activeTab === 'gallery' && isCover(item) && (
                                                             <div className="absolute top-2 left-2 px-2 py-1 bg-brand-primary text-brand-navy text-xs font-bold rounded">
                                                                 Cover
+                                                            </div>
+                                                        )}
+
+                                                        {/* Order badge (Homepage only) */}
+                                                        {activeTab === 'homepage' && (
+                                                            <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-brand-primary text-brand-navy text-xs font-bold flex items-center justify-center">
+                                                                {item.order}
                                                             </div>
                                                         )}
 
@@ -285,7 +366,7 @@ export default function AdminGalleryPage() {
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                                 </svg>
                                                             </button>
-                                                            {!isCover(item) && (
+                                                            {activeTab === 'gallery' && !isCover(item) && (
                                                                 <button
                                                                     onClick={() => setCover(item)}
                                                                     className="p-2 bg-brand-primary/20 hover:bg-brand-primary/30 rounded-lg transition-colors"
@@ -328,10 +409,11 @@ export default function AdminGalleryPage() {
                 {showModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <div className="absolute inset-0 bg-black/50" onClick={() => setShowModal(false)} />
-                        <div className="relative w-full max-w-lg bg-slate-800 rounded-2xl overflow-hidden">
+                        {/* Fixed scrollable modal container */}
+                        <div className="relative w-full max-w-lg bg-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
                             <div className="p-6 border-b border-white/10 flex items-center justify-between">
                                 <h2 className="text-xl font-semibold text-white">
-                                    {editingItem ? 'Edit Image' : 'Add Image'}
+                                    {editingItem ? 'Edit Image' : 'Add Image'} ({activeTab === 'homepage' ? 'Homepage' : 'Gallery'})
                                 </h2>
                                 <button
                                     onClick={() => setShowModal(false)}
@@ -343,7 +425,8 @@ export default function AdminGalleryPage() {
                                 </button>
                             </div>
 
-                            <div className="p-6 space-y-4">
+                            {/* Scrollable body */}
+                            <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
                                 <div>
                                     <label className="block text-slate-400 text-sm mb-1">Image URL *</label>
                                     <input
@@ -353,19 +436,19 @@ export default function AdminGalleryPage() {
                                         placeholder="https://example.com/image.jpg"
                                         className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
                                     />
+                                    {/* Preview limited height */}
+                                    {formData.image_url && (
+                                        <div className="h-48 relative rounded-lg overflow-hidden bg-slate-700 mt-2 shrink-0">
+                                            <Image
+                                                src={formData.image_url}
+                                                alt="Preview"
+                                                fill
+                                                className="object-cover"
+                                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-
-                                {formData.image_url && (
-                                    <div className="aspect-video relative rounded-lg overflow-hidden bg-slate-700">
-                                        <Image
-                                            src={formData.image_url}
-                                            alt="Preview"
-                                            fill
-                                            className="object-cover"
-                                            onError={(e) => (e.currentTarget.style.display = 'none')}
-                                        />
-                                    </div>
-                                )}
 
                                 <div>
                                     <label className="block text-slate-400 text-sm mb-1">Caption</label>
@@ -378,22 +461,25 @@ export default function AdminGalleryPage() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-slate-400 text-sm mb-1">Location</label>
-                                    <input
-                                        type="text"
-                                        value={formData.location}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                                        placeholder="Goa, Maldives, etc."
-                                        list="locations"
-                                        className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
-                                    />
-                                    <datalist id="locations">
-                                        {locations.map(loc => (
-                                            <option key={loc} value={loc} />
-                                        ))}
-                                    </datalist>
-                                </div>
+                                {/* Only show Location for Gallery */}
+                                {activeTab === 'gallery' && (
+                                    <div>
+                                        <label className="block text-slate-400 text-sm mb-1">Location</label>
+                                        <input
+                                            type="text"
+                                            value={formData.location}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                                            placeholder="Goa, Maldives, etc."
+                                            list="locations"
+                                            className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+                                        />
+                                        <datalist id="locations">
+                                            {locations.map(loc => (
+                                                <option key={loc} value={loc} />
+                                            ))}
+                                        </datalist>
+                                    </div>
+                                )}
 
                                 <div>
                                     <label className="block text-slate-400 text-sm mb-1">Order</label>
@@ -406,15 +492,18 @@ export default function AdminGalleryPage() {
                                 </div>
 
                                 <div className="flex flex-col gap-3">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={formData.is_cover === true}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, is_cover: e.target.checked }))}
-                                            className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary/50"
-                                        />
-                                        <span className="text-white">Set as cover image for this location</span>
-                                    </label>
+                                    {/* Cover only for Gallery */}
+                                    {activeTab === 'gallery' && (
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.is_cover === true}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, is_cover: e.target.checked }))}
+                                                className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-brand-primary focus:ring-brand-primary/50"
+                                            />
+                                            <span className="text-white">Set as cover image for this location</span>
+                                        </label>
+                                    )}
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
@@ -448,7 +537,7 @@ export default function AdminGalleryPage() {
 
                 {/* Stats */}
                 <div className="text-center text-slate-400 text-sm">
-                    {gallery.length} images across {locations.length} locations
+                    {filteredGallery.length} images in {activeTab}
                 </div>
             </div>
         </AdminLayout>
