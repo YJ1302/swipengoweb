@@ -19,7 +19,7 @@ export function QuoteForm({ initialDestination = '' }: QuoteFormProps) {
         notes: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -30,58 +30,87 @@ export function QuoteForm({ initialDestination = '' }: QuoteFormProps) {
         e.preventDefault();
         setIsSubmitting(true);
         setSubmitError(null);
+        setSubmitStatus('idle');
 
-        const scriptUrl = process.env.NEXT_PUBLIC_LEADS_SCRIPT_URL;
+        const isDev = process.env.NODE_ENV === 'development';
         let leadSaved = false;
 
-        // 1. Send data to Google Sheet (if configured)
-        if (scriptUrl) {
-            try {
-                const payload = {
-                    name: formData.name,
-                    phone: formData.phone,
-                    destination: formData.destination,
-                    travel_month: formData.travel_month,
-                    num_people: formData.num_people,
-                    budget_range: formData.budget_range,
-                    notes: formData.notes,
-                    source: (typeof window !== 'undefined' ? window.location.pathname : 'Quote Page'),
-                };
+        // Prepare the payload
+        const payload = {
+            name: formData.name,
+            phone: formData.phone,
+            destination: formData.destination,
+            travel_month: formData.travel_month,
+            num_people: formData.num_people,
+            budget_range: formData.budget_range,
+            notes: formData.notes,
+            source: (typeof window !== 'undefined' ? window.location.pathname : 'Quote Page'),
+        };
 
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('[QuoteForm] Sending lead to:', scriptUrl);
-                    console.log('[QuoteForm] Payload:', payload);
-                }
+        if (isDev) {
+            console.log('[QuoteForm] Payload:', payload);
+        }
 
-                // Send as JSON - the Apps Script can now handle plain POST
-                const response = await fetch(scriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors', // Required for cross-origin GAS requests
-                    headers: {
-                        'Content-Type': 'text/plain',
-                    },
-                    body: JSON.stringify(payload),
-                });
+        // Strategy 1: Use server-side proxy (preferred, no CORS issues)
+        try {
+            if (isDev) console.log('[QuoteForm] Trying server-side proxy...');
 
-                // Since no-cors mode, we can't read response, but we got here without error
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('[QuoteForm] Lead request sent (no-cors mode, response opaque)');
-                }
+            const proxyResponse = await fetch('/api/leads/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
 
-                leadSaved = true; // Assume success with no-cors
-                await new Promise(resolve => setTimeout(resolve, 500));
-            } catch (error) {
-                console.error('[QuoteForm] Failed to save lead:', error);
-                setSubmitError('Your information may not have been saved. Please contact us directly if you don\'t receive a response.');
-                // Continue to WhatsApp anyway
+            const proxyData = await proxyResponse.json();
+
+            if (proxyResponse.ok && proxyData.success) {
+                if (isDev) console.log('[QuoteForm] Lead saved via proxy!');
+                leadSaved = true;
+                setSubmitStatus('success');
+            } else {
+                console.warn('[QuoteForm] Proxy failed:', proxyData.error);
+                // Fall through to fallback
             }
-        } else {
-            if (process.env.NODE_ENV === 'development') {
-                console.warn('[QuoteForm] NEXT_PUBLIC_LEADS_SCRIPT_URL is not configured');
+        } catch (proxyError) {
+            console.warn('[QuoteForm] Proxy request failed:', proxyError);
+            // Fall through to fallback
+        }
+
+        // Strategy 2: Direct call to Apps Script (fallback, uses no-cors)
+        if (!leadSaved) {
+            const scriptUrl = process.env.NEXT_PUBLIC_LEADS_SCRIPT_URL;
+
+            if (scriptUrl) {
+                try {
+                    if (isDev) console.log('[QuoteForm] Fallback: direct Apps Script call to', scriptUrl);
+
+                    await fetch(scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify(payload),
+                    });
+
+                    // With no-cors we can't verify success, but assume it worked
+                    if (isDev) console.log('[QuoteForm] Fallback request sent (no-cors, unverifiable)');
+                    leadSaved = true; // Optimistic
+                    setSubmitStatus('success');
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                } catch (directError) {
+                    console.error('[QuoteForm] Direct call also failed:', directError);
+                }
+            } else {
+                if (isDev) console.warn('[QuoteForm] NEXT_PUBLIC_LEADS_SCRIPT_URL not configured');
             }
         }
 
-        // 2. Build WhatsApp message
+        // Show warning if lead wasn't saved
+        if (!leadSaved) {
+            setSubmitError('Your information may not have been saved. Please contact us directly if you don\'t receive a response.');
+            setSubmitStatus('error');
+        }
+
+        // Build WhatsApp message
         const message = `🌴 *New Quote Request*
 
 *Name:* ${formData.name}
@@ -97,16 +126,11 @@ ${formData.notes || 'None'}
 ---
 Sent from Swipe N Go Vacations Website`;
 
-        // 3. Open WhatsApp
+        // Open WhatsApp
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
 
         setIsSubmitting(false);
-
-        // Show success feedback if lead was saved
-        if (leadSaved && !submitError) {
-            // Could add a success toast here
-        }
     };
 
     const inputClasses = "w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary/50 transition-all";
@@ -114,6 +138,12 @@ Sent from Swipe N Go Vacations Website`;
 
     return (
         <form onSubmit={handleSubmit} className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 md:p-8 space-y-6">
+            {/* Success Message */}
+            {submitStatus === 'success' && (
+                <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm text-center">
+                    ✓ Your request has been received! Check WhatsApp to complete.
+                </div>
+            )}
             {/* Name & Phone */}
             <div className="grid md:grid-cols-2 gap-4">
                 <div>

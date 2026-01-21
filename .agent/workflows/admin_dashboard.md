@@ -139,3 +139,66 @@ Go to **Project Settings > Environment Variables** and add:
    - Description: Secures the admin login page.
 
 **Note:** If these are missing in Production, the Admin Dashboard will show "No packages/leads" and the Settings page diagnostics will show "Not Configured".
+
+---
+
+## Verifying Apps Script Deployment
+
+After deploying your Apps Script, verify it's working:
+
+### Method 1: Browser Test
+1. Open your Web App URL in a browser:
+   ```
+   https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?action=testConnection&key=swipengoadmin2024
+   ```
+2. You should see JSON response like:
+   ```json
+   {"ok":true,"data":{"connected":true,"sheetName":"...","tabs":[...]}}
+   ```
+
+### Method 2: Debug Endpoint (Admin-Only)
+1. Visit: `https://your-domain.com/api/debug/lead-test?key=YOUR_ADMIN_KEY`
+2. This creates a test lead and shows the full response from Apps Script.
+3. Check your Leads sheet for `[TEST] Debug Lead`.
+
+### Method 3: Admin Settings Page
+1. Go to `/admin/settings`
+2. Click "Test Connection"
+3. Should show green checkmark with sheet name and tabs.
+
+---
+
+## Lead Capture End-to-End Checklist
+
+Use this checklist to verify lead capture is working in production:
+
+### Prerequisites
+- [ ] Apps Script deployed with latest `scripts/admin-api.gs.js`
+- [ ] `ADMIN_API_URL` set in Vercel Production environment
+- [ ] `NEXT_PUBLIC_LEADS_SCRIPT_URL` set in Vercel Production environment (same URL)
+- [ ] Vercel deployment completed after setting env vars
+
+### Testing
+1. [ ] Visit `/api/debug/lead-test?key=YOUR_ADMIN_KEY` - should return `success: true`
+2. [ ] Check Google Sheet "Leads" tab for `[TEST] Debug Lead` row
+3. [ ] Submit a real quote from the public website
+4. [ ] Verify WhatsApp opens with pre-filled message
+5. [ ] Wait 30 seconds, then refresh Admin Leads page
+6. [ ] New lead should appear in the list
+
+### Troubleshooting Lead Capture
+
+**Lead not appearing in sheet:**
+1. Check browser console for errors (F12 → Console)
+2. Verify `ADMIN_API_URL` is set in Vercel (not just locally)
+3. Re-deploy Apps Script if recently updated
+4. Check Apps Script executions log: Extensions → Apps Script → Executions
+
+**"Server configuration error" on submit:**
+- `ADMIN_API_URL` is not set in Vercel Production environment
+
+**Form submits but sheet empty:**
+- Apps Script may be using wrong spreadsheet
+- Check that script is bound to the correct Google Sheet
+- Verify the "Leads" tab exists with correct headers:
+  `Timestamp, Name, Phone, Destination, Travel_Month, Travelers, Budget, Notes, Source, Status`
