@@ -5,16 +5,31 @@ const ADMIN_KEY = process.env.ADMIN_KEY || '';
 
 export async function GET() {
     try {
+        console.log(`[AdminAPI] Fetching Gallery from: ${ADMIN_API_URL}`);
+
         const response = await fetch(`${ADMIN_API_URL}?action=getGallery&key=${ADMIN_KEY}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store'
         });
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        if (!response.ok) {
+            console.error(`[AdminAPI] Gallery fetch failed: ${response.status}`);
+            return NextResponse.json({ error: 'Upstream error' }, { status: 502 });
+        }
+
+        const json = await response.json();
+
+        if (!json.ok) {
+            console.error('[AdminAPI] Gallery error:', json.error);
+            return NextResponse.json({ error: json.error || 'Failed to fetch gallery' }, { status: 500 });
+        }
+
+        // Map 'data' to 'gallery'
+        return NextResponse.json({ gallery: json.data || [] });
     } catch (error) {
         console.error('Failed to fetch gallery:', error);
-        return NextResponse.json({ error: 'Failed to fetch gallery', gallery: [] }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
@@ -28,11 +43,12 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify(body),
         });
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        const json = await response.json();
+        if (!json.ok) return NextResponse.json({ error: json.error }, { status: 500 });
+        return NextResponse.json(json);
     } catch (error) {
         console.error('Failed to add gallery item:', error);
-        return NextResponse.json({ error: 'Failed to add gallery item' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
@@ -46,11 +62,12 @@ export async function PUT(request: NextRequest) {
             body: JSON.stringify(body),
         });
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        const json = await response.json();
+        if (!json.ok) return NextResponse.json({ error: json.error }, { status: 500 });
+        return NextResponse.json(json);
     } catch (error) {
         console.error('Failed to update gallery item:', error);
-        return NextResponse.json({ error: 'Failed to update gallery item' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
@@ -64,10 +81,11 @@ export async function DELETE(request: NextRequest) {
             body: JSON.stringify(body),
         });
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        const json = await response.json();
+        if (!json.ok) return NextResponse.json({ error: json.error }, { status: 500 });
+        return NextResponse.json(json);
     } catch (error) {
         console.error('Failed to delete gallery item:', error);
-        return NextResponse.json({ error: 'Failed to delete gallery item' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

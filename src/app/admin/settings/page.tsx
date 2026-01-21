@@ -14,14 +14,15 @@ interface ConnectionStatus {
 export default function AdminSettingsPage() {
     const [testing, setTesting] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus | null>(null);
+    const [config, setConfig] = useState<{ apiUrl: string; keyConfigured: boolean } | null>(null);
 
     const testConnection = async () => {
         setTesting(true);
         setConnectionStatus(null);
+        setConfig(null);
 
         try {
-            // Test by fetching packages (which uses the admin API)
-            const res = await fetch('/api/admin/packages');
+            const res = await fetch('/api/admin/health');
             const data = await res.json();
 
             if (data.error) {
@@ -29,10 +30,14 @@ export default function AdminSettingsPage() {
             } else {
                 setConnectionStatus({
                     success: true,
-                    sheetName: 'Connected',
-                    tabs: ['Leads', 'Packages', 'Gallery'],
-                    timestamp: new Date().toISOString()
+                    sheetName: data.sheetName,
+                    tabs: data.tabs,
+                    timestamp: data.timestamp
                 });
+
+                if (data.config) {
+                    setConfig(data.config);
+                }
             }
         } catch (error) {
             setConnectionStatus({
@@ -62,13 +67,13 @@ export default function AdminSettingsPage() {
                             <div className="flex items-center gap-3">
                                 <div className={`w-3 h-3 rounded-full ${connectionStatus?.success ? 'bg-green-500' : connectionStatus?.error ? 'bg-red-500' : 'bg-slate-500'}`} />
                                 <div>
-                                    <p className="text-white font-medium">Sheet Status</p>
+                                    <p className="text-white font-medium">System Status</p>
                                     <p className="text-slate-400 text-sm">
                                         {connectionStatus?.success
-                                            ? 'Connected successfully'
+                                            ? 'Systems Operational'
                                             : connectionStatus?.error
                                                 ? connectionStatus.error
-                                                : 'Not tested yet'
+                                                : 'Not tested'
                                         }
                                     </p>
                                 </div>
@@ -83,18 +88,42 @@ export default function AdminSettingsPage() {
                         </div>
 
                         {connectionStatus?.success && (
-                            <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl space-y-2">
-                                <p className="text-green-400 font-medium">✓ Connection Successful</p>
-                                {connectionStatus.tabs && (
+                            <div className="space-y-3 animate-slide-in">
+                                <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-green-400 font-medium">✓ Apps Script Connected</span>
+                                        <span className="text-slate-400 text-xs">{new Date(connectionStatus.timestamp || '').toLocaleString()}</span>
+                                    </div>
                                     <p className="text-slate-300 text-sm">
-                                        Available tabs: {connectionStatus.tabs.join(', ')}
+                                        Active Spreadsheet: <span className="text-white font-medium">{connectionStatus.sheetName}</span>
                                     </p>
-                                )}
-                                {connectionStatus.timestamp && (
-                                    <p className="text-slate-400 text-xs">
-                                        Last tested: {new Date(connectionStatus.timestamp).toLocaleString()}
-                                    </p>
-                                )}
+                                    <div className="flex gap-2 mt-2">
+                                        {connectionStatus.tabs?.map(tab => (
+                                            <span key={tab} className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300 border border-slate-600">
+                                                {tab}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-slate-700/30 border border-white/5 rounded-xl space-y-3">
+                                    <h3 className="text-white font-medium text-sm">Environment Configuration</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-slate-500 text-xs uppercase tracking-wider">Admin API URL</label>
+                                            <p className="text-slate-300 font-mono text-sm truncate" title="Masked for security">
+                                                {config?.apiUrl || 'Unknown'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="text-slate-500 text-xs uppercase tracking-wider">Admin Key</label>
+                                            <p className="text-slate-300 font-mono text-sm">
+                                                {config?.keyConfigured ? '••••••••' : 'Not Configured'}
+                                                {config?.keyConfigured && <span className="ml-2 text-green-400 text-xs">✓ Set</span>}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

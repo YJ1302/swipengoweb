@@ -1,10 +1,11 @@
 // ============================================
 // SWIPE N GO ADMIN API
-// Version: 1.0
+// Version: 2.0 (Strict JSON, Robust Parsing)
 // Deploy as Web App with "Execute as: Me" and "Access: Anyone"
 // ============================================
 
 // IMPORTANT: Change this to match your .env.local ADMIN_KEY
+// In production, this should be a strong secret.
 const ADMIN_KEY = 'swipengoadmin2024';
 
 function doGet(e) {
@@ -19,64 +20,171 @@ function handleRequest(e, method) {
     var action = e.parameter.action || '';
     var key = e.parameter.key || '';
 
-    // For POST requests without action parameter, default to addLead (for website form)
+    // Check header for key if not in params (for cleaner URLs)
+    // Note: Apps Script might not expose all headers in 'e' depending on context, 
+    // but we can check if passed via query param as fallback.
+    // e.parameter is case-sensitive.
+
+    // Default action for POST (e.g. from website form)
     if (method === 'POST' && !action && e.postData && e.postData.contents) {
         action = 'addLead';
     }
 
-    // Public endpoint: addLead (for website form)
+    // 1. Auth Check
+    // Public endpoint: addLead (for website form) - no key required
     if (action === 'addLead') {
         return addLead(e);
     }
 
-    // All other endpoints require admin key
+    // Admin endpoints - require key
+    /*
+      The user requirement says: 
+      "Add a simple auth check for admin endpoints: require key query param OR x-admin-key header value matching ADMIN_KEY."
+      Google Apps Script web apps don't always reliably pass custom headers in `e` to `doGet`/`doPost` depending on the runtime/deployment.
+      Query param is the most reliable method for GAS. We'll support query param 'key'.
+    */
     if (key !== ADMIN_KEY) {
-        return jsonResponse({ error: 'Unauthorized' }, 401);
+        return createResponse({ error: 'Unauthorized: Invalid or missing API key' }, false, 401);
     }
 
     try {
         switch (action) {
-            // Leads
-            case 'getLeads': return getLeads(e);
+            // Leads (READ/WRITE)
+            case 'getLeads': return getLeads();
             case 'updateLead': return updateLead(e);
 
-            // Packages
-            case 'getPackages': return getPackages(e);
+            // Packages (READ/WRITE)
+            case 'getPackages': return getPackages();
             case 'addPackage': return addPackage(e);
             case 'updatePackage': return updatePackage(e);
             case 'deletePackage': return deletePackage(e);
 
-            // Gallery
-            case 'getGallery': return getGallery(e);
+            // Gallery (READ/WRITE)
+            case 'getGallery': return getGallery();
             case 'addGalleryItem': return addGalleryItem(e);
             case 'updateGalleryItem': return updateGalleryItem(e);
             case 'deleteGalleryItem': return deleteGalleryItem(e);
 
-            // Settings
+            // Diagnostic
             case 'testConnection': return testConnection();
 
             default:
-                return jsonResponse({ error: 'Unknown action: ' + action }, 400);
+                return createResponse({ error: 'Unknown action: ' + action }, false, 400);
         }
     } catch (err) {
-        return jsonResponse({ error: err.message }, 500);
+        return createResponse({ error: err.toString(), stack: err.stack }, false, 500);
     }
 }
 
-function jsonResponse(data, status) {
-    status = status || 200;
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function createResponse(payload, ok, status) {
+    // Standard response shape: { ok: boolean, data?: any, error?: string }
+    var response = {
+        ok: ok,
+        status: status || 200
+    };
+
+    if (ok) {
+        response.data = payload;
+    } else {
+        response.error = payload.error || 'Unknown error';
+        if (payload.stack) response.debug = payload.stack;
+    }
+
     return ContentService
-        .createTextOutput(JSON.stringify({ ...data, status: status }))
+        .createTextOutput(JSON.stringify(response))
         .setMimeType(ContentService.MimeType.JSON);
 }
 
+function getSheetData(sheetName) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) throw new Error('Sheet not found: ' + sheetName);
+
+    var range = sheet.getDataRange();
+    var values = range.getValues();
+
+    if (values.length < 2) return []; // Only headers or empty
+
+    var headers = values[0].map(function (h) {
+        return h.toString().trim().toLowerCase().replace(/\s+/g, '_');
+    });
+
+    var result = [];
+
+    for (var i = 1; i < values.length; i++) {
+        var row = values[i];
+
+        // Skip completely empty rows
+        var isEmpty = row.every(function (cell) { return cell === '' || cell === null; });
+        if (isEmpty) continue;
+
+        var obj = { _rowIndex: i + 1 };
+        for (var j = 0; j < headers.length; j++) {
+            var val = row[j];
+            // Basic trimming if string
+            if (typeof val === 'string') val = val.trim();
+            obj[headers[j]] = val;
+        }
+        result.push(obj);
+    }
+
+    return result;
+}
+
+function getOrCreateSheet(name, headers) {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) {
+        sheet = ss.insertSheet(name);
+        sheet.appendRow(headers);
+    }
+    return sheet;
+}
+
+// Robust number parsing
+function parseNumber(val) {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    // Handle commas for decimals if present (e.g. European style)
+    var normalized = val.toString().replace(',', '.');
+    var num = parseFloat(normalized);
+    return isNaN(num) ? 0 : num;
+}
+
+function parseBoolean(val) {
+    if (val === true || val === 'TRUE' || val === 'true' || val === 1 || val === '1') return true;
+    return false;
+}
+
 // ============================================
-// LEADS FUNCTIONS
+// LEADS
 // ============================================
+
+function getLeads() {
+    var rawLeads = getSheetData('Leads');
+    // Sort logic handled in frontend? Or here? 
+    // Previous script did reverse() for newest first.
+    return createResponse(rawLeads.reverse(), true);
+}
 
 function addLead(e) {
     var sheet = getOrCreateSheet('Leads', ['Timestamp', 'Name', 'Phone', 'Destination', 'Travel_Month', 'Travelers', 'Budget', 'Notes', 'Source', 'Status']);
-    var data = JSON.parse(e.postData.contents);
+
+    // Support JSON body or Form encoded
+    var data;
+    if (e.postData && e.postData.contents) {
+        try {
+            data = JSON.parse(e.postData.contents);
+        } catch (err) {
+            // fallback if not JSON
+            data = e.parameter;
+        }
+    } else {
+        data = e.parameter;
+    }
 
     sheet.appendRow([
         new Date(),
@@ -91,85 +199,57 @@ function addLead(e) {
         'New'
     ]);
 
-    return jsonResponse({ success: true, message: 'Lead added' });
-}
-
-function getLeads(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leads');
-    if (!sheet) return jsonResponse({ leads: [] });
-
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var leads = [];
-
-    for (var i = 1; i < data.length; i++) {
-        var row = data[i];
-        var obj = { _rowIndex: i + 1 };
-        for (var j = 0; j < headers.length; j++) {
-            var key = headers[j].toString().toLowerCase().replace(/\s+/g, '_');
-            obj[key] = row[j];
-        }
-        leads.push(obj);
-    }
-
-    leads.reverse(); // Newest first
-    return jsonResponse({ leads: leads });
+    return createResponse({ message: 'Lead added successfully' }, true);
 }
 
 function updateLead(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leads');
     var data = JSON.parse(e.postData.contents);
-    var rowIndex = data._rowIndex;
+    if (!data._rowIndex) throw new Error('Row index required');
 
-    if (!rowIndex) return jsonResponse({ error: 'Row index required' }, 400);
-
-    // Update status column (column J = 10)
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leads');
+    // Status is column J (10)
     if (data.status) {
-        sheet.getRange(rowIndex, 10).setValue(data.status);
+        sheet.getRange(data._rowIndex, 10).setValue(data.status);
     }
 
-    return jsonResponse({ success: true });
+    return createResponse({ message: 'Lead updated' }, true);
 }
 
 // ============================================
-// PACKAGES FUNCTIONS
+// PACKAGES
 // ============================================
 
-function getPackages(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Packages');
-    if (!sheet) return jsonResponse({ packages: [] });
-
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var packages = [];
-
-    for (var i = 1; i < data.length; i++) {
-        var row = data[i];
-        var obj = { _rowIndex: i + 1 };
-        for (var j = 0; j < headers.length; j++) {
-            var key = headers[j].toString().toLowerCase().replace(/\s+/g, '_');
-            obj[key] = row[j];
-        }
-        packages.push(obj);
-    }
-
-    return jsonResponse({ packages: packages });
+function getPackages() {
+    var raw = getSheetData('Packages');
+    var processed = raw.map(function (item) {
+        // Enforce types
+        item.active = parseBoolean(item.active);
+        item.order = parseNumber(item.order);
+        item.lat = parseNumber(item.lat);
+        item.lng = parseNumber(item.lng);
+        return item;
+    });
+    return createResponse(processed, true);
 }
 
 function addPackage(e) {
-    var headers = ['slug', 'title', 'price', 'duration', 'location', 'description', 'includes', 'excludes', 'image_url', 'whatsapp_text', 'active', 'order', 'lat', 'lng', 'country', 'city', 'category', 'best_time', 'highlights', 'itinerary', 'what_to_carry'];
+    var headers = ['slug', 'title', 'price', 'duration', 'location', 'description',
+        'includes', 'excludes', 'image_url', 'whatsapp_text', 'active',
+        'order', 'lat', 'lng', 'country', 'city', 'category', 'best_time',
+        'highlights', 'itinerary', 'what_to_carry'];
+
     var sheet = getOrCreateSheet('Packages', headers);
     var data = JSON.parse(e.postData.contents);
 
-    // Validate slug
     var slug = (data.slug || '').toString().trim().toLowerCase().replace(/\s+/g, '-');
-    if (!slug) return jsonResponse({ error: 'Slug is required' }, 400);
+    if (!slug) throw new Error('Slug is required');
 
-    // Check slug uniqueness
+    // Check dupe slug
     var existing = sheet.getDataRange().getValues();
     for (var i = 1; i < existing.length; i++) {
+        // Slug is col 1 (index 0)
         if (existing[i][0].toString().toLowerCase() === slug) {
-            return jsonResponse({ error: 'Slug already exists' }, 400);
+            throw new Error('Slug already exists');
         }
     }
 
@@ -184,10 +264,10 @@ function addPackage(e) {
         (data.excludes || '').toString().trim(),
         (data.image_url || '').toString().trim(),
         (data.whatsapp_text || '').toString().trim(),
-        data.active === true || data.active === 'TRUE' ? 'TRUE' : 'FALSE',
-        parseInt(data.order) || 0,
-        parseCoord(data.lat),
-        parseCoord(data.lng),
+        parseBoolean(data.active) ? 'TRUE' : 'FALSE',
+        parseNumber(data.order),
+        parseNumber(data.lat),
+        parseNumber(data.lng),
         (data.country || '').toString().trim(),
         (data.city || '').toString().trim(),
         (data.category || '').toString().trim(),
@@ -197,182 +277,151 @@ function addPackage(e) {
         (data.what_to_carry || '').toString().trim()
     ]);
 
-    return jsonResponse({ success: true, slug: slug });
+    return createResponse({ message: 'Package added', slug: slug }, true);
 }
 
 function updatePackage(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Packages');
     var data = JSON.parse(e.postData.contents);
-    var rowIndex = data._rowIndex;
+    if (!data._rowIndex) throw new Error('Row index required');
 
-    if (!rowIndex) return jsonResponse({ error: 'Row index required' }, 400);
-
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Packages');
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-    for (var colIndex = 0; colIndex < headers.length; colIndex++) {
-        var key = headers[colIndex].toString().toLowerCase().replace(/\s+/g, '_');
+    for (var col = 0; col < headers.length; col++) {
+        var key = headers[col].toString().toLowerCase().replace(/\s+/g, '_');
         if (data.hasOwnProperty(key) && key !== '_rowindex') {
-            var value = data[key];
-            if (key === 'active') value = value === true || value === 'TRUE' ? 'TRUE' : 'FALSE';
-            if (key === 'lat' || key === 'lng') value = parseCoord(value);
-            if (key === 'order') value = parseInt(value) || 0;
-            sheet.getRange(rowIndex, colIndex + 1).setValue(value);
+            var val = data[key];
+            if (key === 'active') val = parseBoolean(val) ? 'TRUE' : 'FALSE';
+            else if (key === 'lat' || key === 'lng') val = parseNumber(val);
+            else if (key === 'order') val = parseNumber(val);
+
+            sheet.getRange(data._rowIndex, col + 1).setValue(val);
         }
     }
 
-    return jsonResponse({ success: true });
+    return createResponse({ message: 'Package updated' }, true);
 }
 
 function deletePackage(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Packages');
     var data = JSON.parse(e.postData.contents);
-    var rowIndex = data._rowIndex;
-
-    if (!rowIndex) return jsonResponse({ error: 'Row index required' }, 400);
-
-    sheet.deleteRow(rowIndex);
-    return jsonResponse({ success: true });
+    if (!data._rowIndex) throw new Error('Row index required');
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Packages');
+    sheet.deleteRow(data._rowIndex);
+    return createResponse({ message: 'Package deleted' }, true);
 }
 
 // ============================================
-// GALLERY FUNCTIONS
+// GALLERY
 // ============================================
 
-function getGallery(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Gallery');
-    if (!sheet) return jsonResponse({ gallery: [] });
-
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var gallery = [];
-
-    for (var i = 1; i < data.length; i++) {
-        var row = data[i];
-        var obj = { _rowIndex: i + 1 };
-        for (var j = 0; j < headers.length; j++) {
-            var key = headers[j].toString().toLowerCase().replace(/\s+/g, '_');
-            obj[key] = row[j];
-        }
-        gallery.push(obj);
-    }
-
-    return jsonResponse({ gallery: gallery });
+function getGallery() {
+    var raw = getSheetData('Gallery');
+    var processed = raw.map(function (item) {
+        item.active = parseBoolean(item.active);
+        item.is_cover = parseBoolean(item.is_cover);
+        item.order = parseNumber(item.order);
+        return item;
+    });
+    return createResponse(processed, true);
 }
 
 function addGalleryItem(e) {
+    // headers: image_url, caption, location, is_cover, active, order
     var sheet = getOrCreateSheet('Gallery', ['image_url', 'caption', 'location', 'is_cover', 'active', 'order']);
     var data = JSON.parse(e.postData.contents);
 
-    if (!data.image_url) return jsonResponse({ error: 'Image URL is required' }, 400);
+    if (!data.image_url) throw new Error('Image URL required');
 
-    // If setting as cover, unset existing covers for same location
-    if (data.is_cover === true || data.is_cover === 'TRUE') {
+    if (parseBoolean(data.is_cover)) {
         unsetCoversForLocation(sheet, data.location);
     }
 
     sheet.appendRow([
-        (data.image_url || '').toString().trim(),
+        data.image_url.toString().trim(),
         (data.caption || '').toString().trim(),
         (data.location || 'Other').toString().trim(),
-        data.is_cover === true || data.is_cover === 'TRUE' ? 'TRUE' : 'FALSE',
-        data.active === true || data.active === 'TRUE' ? 'TRUE' : 'FALSE',
-        parseInt(data.order) || 0
+        parseBoolean(data.is_cover) ? 'TRUE' : 'FALSE',
+        parseBoolean(data.active) ? 'TRUE' : 'FALSE',
+        parseNumber(data.order)
     ]);
 
-    return jsonResponse({ success: true });
+    return createResponse({ message: 'Gallery item added' }, true);
 }
 
 function updateGalleryItem(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Gallery');
     var data = JSON.parse(e.postData.contents);
-    var rowIndex = data._rowIndex;
+    if (!data._rowIndex) throw new Error('Row index required');
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Gallery');
 
-    if (!rowIndex) return jsonResponse({ error: 'Row index required' }, 400);
-
-    // If setting as cover, unset existing covers for same location
-    if (data.is_cover === true || data.is_cover === 'TRUE') {
-        var location = data.location || sheet.getRange(rowIndex, 3).getValue();
+    if (parseBoolean(data.is_cover)) {
+        var location = data.location || sheet.getRange(data._rowIndex, 3).getValue();
         unsetCoversForLocation(sheet, location);
     }
 
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 
-    for (var colIndex = 0; colIndex < headers.length; colIndex++) {
-        var key = headers[colIndex].toString().toLowerCase().replace(/\s+/g, '_');
+    for (var col = 0; col < headers.length; col++) {
+        var key = headers[col].toString().toLowerCase().replace(/\s+/g, '_');
         if (data.hasOwnProperty(key) && key !== '_rowindex') {
-            var value = data[key];
-            if (key === 'is_cover' || key === 'active') value = value === true || value === 'TRUE' ? 'TRUE' : 'FALSE';
-            if (key === 'order') value = parseInt(value) || 0;
-            sheet.getRange(rowIndex, colIndex + 1).setValue(value);
+            var val = data[key];
+            if (key === 'active' || key === 'is_cover') val = parseBoolean(val) ? 'TRUE' : 'FALSE';
+            else if (key === 'order') val = parseNumber(val);
+
+            sheet.getRange(data._rowIndex, col + 1).setValue(val);
         }
     }
-
-    return jsonResponse({ success: true });
+    return createResponse({ message: 'Gallery item updated' }, true);
 }
 
 function deleteGalleryItem(e) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Gallery');
     var data = JSON.parse(e.postData.contents);
-    var rowIndex = data._rowIndex;
-
-    if (!rowIndex) return jsonResponse({ error: 'Row index required' }, 400);
-
-    sheet.deleteRow(rowIndex);
-    return jsonResponse({ success: true });
+    if (!data._rowIndex) throw new Error('Row index required');
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Gallery').deleteRow(data._rowIndex);
+    return createResponse({ message: 'Gallery item deleted' }, true);
 }
 
 function unsetCoversForLocation(sheet, location) {
-    var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var locCol = -1;
-    var coverCol = -1;
+    var range = sheet.getDataRange();
+    var values = range.getValues();
+    var locCol = -1, coverCol = -1;
 
-    for (var i = 0; i < headers.length; i++) {
-        if (headers[i].toString().toLowerCase() === 'location') locCol = i;
-        if (headers[i].toString().toLowerCase() === 'is_cover') coverCol = i;
-    }
+    // Find cols
+    values[0].forEach(function (h, i) {
+        var ht = h.toString().toLowerCase();
+        if (ht === 'location') locCol = i;
+        if (ht === 'is_cover') coverCol = i;
+    });
 
     if (locCol === -1 || coverCol === -1) return;
 
-    for (var i = 1; i < data.length; i++) {
-        if (data[i][locCol] === location && data[i][coverCol] === 'TRUE') {
+    for (var i = 1; i < values.length; i++) {
+        if (values[i][locCol] === location && values[i][coverCol] === 'TRUE') {
             sheet.getRange(i + 1, coverCol + 1).setValue('FALSE');
         }
     }
 }
 
 // ============================================
-// UTILITY FUNCTIONS
+// SYSTEM
 // ============================================
-
-function getOrCreateSheet(name, headers) {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(name);
-    if (!sheet) {
-        sheet = ss.insertSheet(name);
-        sheet.appendRow(headers);
-    }
-    return sheet;
-}
-
-function parseCoord(value) {
-    if (!value) return '';
-    var str = value.toString().trim().replace(',', '.');
-    var num = parseFloat(str);
-    return isNaN(num) ? '' : num;
-}
 
 function testConnection() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheets = ss.getSheets();
     var tabNames = [];
+    var counts = {};
+
     for (var i = 0; i < sheets.length; i++) {
-        tabNames.push(sheets[i].getName());
+        var name = sheets[i].getName();
+        tabNames.push(name);
+        counts[name] = sheets[i].getLastRow() - 1; // approx count minus header
     }
-    return jsonResponse({
-        success: true,
+
+    return createResponse({
+        connected: true,
         sheetName: ss.getName(),
         tabs: tabNames,
+        counts: counts,
         timestamp: new Date().toISOString()
-    });
+    }, true);
 }

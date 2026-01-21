@@ -111,3 +111,31 @@ ADMIN_PASSWORD=your_secure_password
 - **Public Site**: `src/app/(public)` (Uses Header/Footer)
 - **Admin Panel**: `src/app/admin` (Uses Admin Sidebar)
 - **API**: Next.js API Routes (`src/app/api`) proxy requests to Google Apps Script.
+
+## Deployment to Vercel (Production)
+
+When deploying to Vercel, ensure you set the following **Environment Variables** in the **Production** environment (NOT just Preview/Development).
+
+Go to **Project Settings > Environment Variables** and add:
+
+1. **`ADMIN_API_URL`**
+   - Value: Your Google Apps Script Web App URL (ending in `/exec`)
+   - Description: Used by the server-side API routes to fetch/write data.
+
+2. **`ADMIN_KEY`**
+   - Value: `swipengoadmin2024` (or your custom secure key)
+   - Description: Authenticates requests to the Apps Script.
+
+3. **`NEXT_PUBLIC_LEADS_SCRIPT_URL`**
+   - Value: Same as `ADMIN_API_URL` (usually)
+   - Description: Used by the public website's "Get a Quote" form to submit leads directly (no-cors).
+
+4. **`SHEET_ID`**
+   - Value: The ID of your Google Sheet
+   - Description: Used by the public site's data fetching logic (`src/lib/sheets.ts`).
+
+5. **`ADMIN_PASSWORD`**
+   - Value: Your chosen dashboard password
+   - Description: Secures the admin login page.
+
+**Note:** If these are missing in Production, the Admin Dashboard will show "No packages/leads" and the Settings page diagnostics will show "Not Configured".
