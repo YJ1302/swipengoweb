@@ -240,7 +240,7 @@ export default function AdminSettingsPage() {
                         Check the setup guide for detailed instructions on configuring the admin dashboard.
                     </p>
                     <p className="text-slate-500 text-sm">
-                        Documentation: <code className="text-brand-primary">.agent/workflows/admin_dashboard.md</code>
+                        Documentation: <code className="text-brand-primary">Contact Yash Joshi</code>
                     </p>
                 </div>
             </div>

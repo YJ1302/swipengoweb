@@ -51,15 +51,15 @@ export function HowItWorks() {
                 </div>
 
                 {/* Steps */}
-                <div className="grid md:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-3 gap-8 items-stretch">
                     {steps.map((step, index) => (
-                        <div key={index} className="relative">
+                        <div key={index} className="relative h-full">
                             {/* Connector Line (hidden on mobile, last item) */}
                             {index < steps.length - 1 && (
                                 <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-gradient-to-r from-brand-primary/50 to-brand-accent/50" />
                             )}
 
-                            <div className="relative bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 text-center hover:border-brand-primary/30 transition-colors group">
+                            <div className="relative h-full bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 text-center hover:border-brand-primary/30 transition-colors group flex flex-col">
                                 {/* Number Badge */}
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-brand-primary text-brand-navy font-bold rounded-full flex items-center justify-center text-sm shadow-lg shadow-brand-primary/30">
                                     {step.number}
@@ -72,7 +72,7 @@ export function HowItWorks() {
 
                                 {/* Content */}
                                 <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
-                                <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
+                                <p className="text-slate-400 text-sm leading-relaxed flex-grow">{step.description}</p>
                             </div>
                         </div>
                     ))}
