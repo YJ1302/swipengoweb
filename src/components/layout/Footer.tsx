@@ -3,7 +3,7 @@ import Link from 'next/link';
 export function Footer() {
     const businessName = process.env.NEXT_PUBLIC_BUSINESS_NAME || 'Swipe N Go Vacations';
     const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipengovacations';
-    const facebookUrl = 'https://www.facebook.com/swipengovacations'; // Assuming handle
+    const facebookUrl = 'https://www.facebook.com/p/Swipengovacations-61570140293216/'; // Assuming handle
     const currentYear = new Date().getFullYear();
 
     return (

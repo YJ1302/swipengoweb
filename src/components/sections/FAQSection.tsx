@@ -70,7 +70,7 @@ export function FAQSection() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                    <h2 className="text-3xl md:text-4xl font-bold text-brand-navy mb-4">
                         Frequently Asked <span className="text-brand-primary">Questions</span>
                     </h2>
                     <p className="text-slate-400 max-w-2xl mx-auto">
