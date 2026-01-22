@@ -63,7 +63,9 @@ interface RawPackage {
     location?: string;
     description?: string;
     includes?: string;
+    include?: string;
     excludes?: string;
+    exclude?: string;
     image_url?: string;
     whatsapp_text?: string;
     active?: string;
@@ -135,8 +137,8 @@ function transformPackage(raw: RawPackage): Package {
         duration: (raw.duration || '').trim(),
         location: (raw.location || '').trim(),
         description: (raw.description || '').trim(),
-        includes: parseList(raw.includes),
-        excludes: parseList(raw.excludes),
+        includes: parseList(raw.includes || raw.include),
+        excludes: parseList(raw.excludes || raw.exclude),
         image_url: getDirectImageUrl(raw.image_url || ''),
         whatsapp_text: (raw.whatsapp_text || '').trim(),
         active: isTruthy(raw.active),

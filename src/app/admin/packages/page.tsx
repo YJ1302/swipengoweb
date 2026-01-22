@@ -182,6 +182,8 @@ export default function AdminPackagesPage() {
             // Prepare body with decimal lat/lng
             const payload = {
                 ...formData,
+                include: formData.includes,
+                exclude: formData.excludes,
                 itinerary: serializedItinerary,
                 lat: latDecimal,
                 lng: lngDecimal
@@ -434,7 +436,27 @@ export default function AdminPackagesPage() {
 
                                 <div className="grid md:grid-cols-3 gap-4">
                                     <div><label className="block text-slate-400 text-sm mb-1">Price</label><input type="text" value={formData.price} onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="₹15,000" className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
-                                    <div><label className="block text-slate-400 text-sm mb-1">Duration</label><input type="text" value={formData.duration} onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))} placeholder="5 Days / 4 Nights" className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
+                                    <div>
+                                        <label className="block text-slate-400 text-sm mb-1">Duration</label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={parseInt(formData.duration) || 1}
+                                                onChange={(e) => {
+                                                    const days = parseInt(e.target.value);
+                                                    const nights = Math.max(0, days - 1);
+                                                    setFormData(prev => ({ ...prev, duration: `${days} Days / ${nights} Nights` }));
+                                                }}
+                                                className="flex-1 px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+                                            >
+                                                {[...Array(30)].map((_, i) => (
+                                                    <option key={i} value={i + 1}>{i + 1} Days</option>
+                                                ))}
+                                            </select>
+                                            <div className="flex-1 px-4 py-2 bg-slate-700/30 border border-white/5 rounded-lg text-slate-400 text-sm flex items-center justify-center whitespace-nowrap">
+                                                {parseInt(formData.duration) ? `${Math.max(0, parseInt(formData.duration) - 1)} Nights` : '0 Nights'}
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div><label className="block text-slate-400 text-sm mb-1">Order</label><input type="number" value={formData.order} onChange={(e) => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))} className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
                                 </div>
 

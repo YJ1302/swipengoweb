@@ -223,43 +223,23 @@ export default async function PackageDetailPage({ params }: Props) {
                             </div>
                         )}
 
-                        {/* Cancellation Policy */}
-                        <div className="p-6 md:p-8 border-t border-slate-700/50 bg-slate-700/20">
-                            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                                <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                Cancellation Policy
-                            </h2>
-                            <ul className="space-y-1 text-sm text-slate-400">
-                                {cancellationPolicy.map((item, index) => (
-                                    <li key={index} className="flex items-start gap-2">
-                                        <span className="text-slate-500">•</span>
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+
 
                         {/* CTA */}
                         <div className="p-6 md:p-8 bg-gradient-to-r from-brand-navy to-slate-800">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div>
                                     <h3 className="text-xl font-bold text-white">Ready to Book?</h3>
-                                    <p className="text-slate-400 text-sm">Get a personalized quote on WhatsApp</p>
+                                    <p className="text-slate-400 text-sm">Contact us directly to customize or book this trip.</p>
                                 </div>
-                                <div className="flex gap-3">
-                                    <Link
-                                        href={`/quote?destination=${encodeURIComponent(pkg.title)}`}
-                                        className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/20"
-                                    >
-                                        Request Quote
-                                    </Link>
+                                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                                     <WhatsAppButton
-                                        message={pkg.whatsapp_text || `Hi! I'm interested in the ${pkg.title} package.`}
+                                        message={`Hi! I would like to book the ${pkg.title} package.`}
                                         size="lg"
+                                        variant="primary"
+                                        className="w-full sm:w-auto"
                                     >
-                                        Get Quote on WhatsApp
+                                        Book Now
                                     </WhatsAppButton>
                                 </div>
                             </div>
