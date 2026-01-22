@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getAllPackages, getPackageBySlug } from "@/lib/sheets";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { Package } from "@/types";
+import { ItinerarySection } from "@/components/packages/ItinerarySection";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -33,37 +34,7 @@ export async function generateStaticParams() {
     return packages.map((pkg) => ({ slug: pkg.slug }));
 }
 
-// Accordion component for itinerary
-function ItineraryAccordion({ itinerary }: { itinerary: Package['itinerary'] }) {
-    if (!itinerary || itinerary.length === 0) return null;
-
-    return (
-        <div className="space-y-3">
-            {itinerary.map((day, index) => (
-                <details
-                    key={index}
-                    className="group bg-slate-700/30 rounded-xl border border-slate-600/30 overflow-hidden"
-                    open={index === 0}
-                >
-                    <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-700/50 transition-colors list-none">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primary font-bold text-sm">
-                                {day.day}
-                            </div>
-                            <span className="font-semibold text-white">{day.title}</span>
-                        </div>
-                        <svg className="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </summary>
-                    <div className="px-4 pb-4 pt-0">
-                        <p className="text-slate-300 leading-relaxed pl-14">{day.description}</p>
-                    </div>
-                </details>
-            ))}
-        </div>
-    );
-}
+// Accordion logic moved to @/components/packages/ItinerarySection
 
 export default async function PackageDetailPage({ params }: Props) {
     const { slug } = await params;
@@ -182,17 +153,7 @@ export default async function PackageDetailPage({ params }: Props) {
                         )}
 
                         {/* Itinerary */}
-                        {pkg.itinerary && pkg.itinerary.length > 0 && (
-                            <div className="p-6 md:p-8 border-b border-slate-700/50">
-                                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                    <svg className="w-6 h-6 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                    </svg>
-                                    Day-by-Day Itinerary
-                                </h2>
-                                <ItineraryAccordion itinerary={pkg.itinerary} />
-                            </div>
-                        )}
+                        <ItinerarySection itinerary={pkg.itinerary} />
 
                         {/* Includes / Excludes */}
                         <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-700/50">

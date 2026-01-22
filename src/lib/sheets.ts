@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { Package, GalleryItem, LocationGroup, ItineraryDay } from '@/types';
+import { parseItinerary } from '@/utils/itinerary';
 
 const SHEET_ID = process.env.SHEET_ID;
 
@@ -124,61 +125,7 @@ function parseList(value: string | undefined): string[] {
     return value.split('|').map(s => s.trim()).filter(s => s.length > 0);
 }
 
-// Parse itinerary from JSON or structured format
-// Format: "Day 1: Title - Description | Day 2: Title - Description" OR JSON
-function parseItinerary(value: string | undefined): ItineraryDay[] {
-    if (!value) return [];
-    const trimmed = value.trim();
-
-    // Try JSON first
-    if (trimmed.startsWith('[')) {
-        try {
-            return JSON.parse(trimmed);
-        } catch {
-            // Fall through to pipe format
-        }
-    }
-
-    // Pipe-separated format: "Day 1: Title - Description | Day 2: ..."
-    const days: ItineraryDay[] = [];
-    const parts = trimmed.split('|');
-
-    parts.forEach((part, index) => {
-        const cleaned = part.trim();
-        if (!cleaned) return;
-
-        // Try to parse "Day N: Title - Description"
-        const dayMatch = cleaned.match(/^Day\s*(\d+)\s*:\s*(.+)/i);
-        if (dayMatch) {
-            const dayNum = parseInt(dayMatch[1]);
-            const rest = dayMatch[2];
-            const dashIndex = rest.indexOf(' - ');
-
-            if (dashIndex > 0) {
-                days.push({
-                    day: dayNum,
-                    title: rest.substring(0, dashIndex).trim(),
-                    description: rest.substring(dashIndex + 3).trim()
-                });
-            } else {
-                days.push({
-                    day: dayNum,
-                    title: rest.trim(),
-                    description: ''
-                });
-            }
-        } else {
-            // Just use as description with auto-incrementing day
-            days.push({
-                day: index + 1,
-                title: `Day ${index + 1}`,
-                description: cleaned
-            });
-        }
-    });
-
-    return days;
-}
+// Parse itinerary moved to @/utils/itinerary
 
 function transformPackage(raw: RawPackage): Package {
     return {
