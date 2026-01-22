@@ -2,7 +2,7 @@
 
 import { Reveal } from '../ui/animations/Reveal';
 
-const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipe_n_go_vacations';
+const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipe_n_go_vacations/';
 
 export function InstagramPreview() {
     return (
@@ -34,7 +34,7 @@ export function InstagramPreview() {
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-pink-500/25 transform hover:scale-105 active:scale-95 transition-all duration-200"
                             >
-                                <span>@swipengovacations</span>
+                                <span>@swipe_n_go_vacations</span>
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>

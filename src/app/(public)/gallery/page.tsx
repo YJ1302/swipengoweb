@@ -159,7 +159,7 @@ export default async function GalleryPage() {
                         Follow us on Instagram <span className="font-bold">@swipe_n_go_vacations</span> for daily travel inspiration, reels, and behind-the-scenes content!
                     </p>
                     <a
-                        href={process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/swipe_n_go_vacations"}
+                        href={process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/swipe_n_go_vacations/"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-2 px-8 py-4 bg-white text-purple-600 font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200"

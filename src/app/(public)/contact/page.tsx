@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-    const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/swipe_n_go_vacations";
+    const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/swipe_n_go_vacations/";
     const businessName = process.env.NEXT_PUBLIC_BUSINESS_NAME || "Swipe N Go Vacations";
 
     return (

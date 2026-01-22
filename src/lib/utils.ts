@@ -19,7 +19,7 @@ export function getBusinessName(): string {
 
 // Get Instagram URL from environment
 export function getInstagramUrl(): string {
-    return process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipe_n_go_vacations';
+    return process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipe_n_go_vacations/';
 }
 
 // Format price for display
