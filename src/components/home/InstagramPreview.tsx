@@ -2,7 +2,7 @@
 
 import { Reveal } from '../ui/animations/Reveal';
 
-const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipengovacations';
+const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL || 'https://www.instagram.com/swipe_n_go_vacations';
 
 export function InstagramPreview() {
     return (
