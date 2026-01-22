@@ -22,6 +22,8 @@
   --color-brand-accent: var(--brand-accent);
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-sky: var(--brand-sky);
+
+  --font-display: var(--font-cinzel);
 }
 
 body {

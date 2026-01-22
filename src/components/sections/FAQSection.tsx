@@ -27,6 +27,7 @@ const faqs: FAQ[] = [
         question: "Is there a refund policy?",
         answer: "Yes. We maintain a clear and transparent cancellation policy. Cancellation charges are applied based on the number of days prior to departure: 30+ days: 10% of the total trip cost; 15–29 days: 25%; 7–14 days: 50%; 0–6 days: 100% (no refund). We recommend purchasing travel insurance to protect against unforeseen changes to your plans."
     },
+
     // Safety
     {
         category: "Safety",

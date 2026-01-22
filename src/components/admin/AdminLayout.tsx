@@ -83,7 +83,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                             className="w-12 h-12 object-contain"
                         />
                         <div className="flex flex-col">
-                            <span className="text-lg font-bold text-white leading-tight">Swipe N Go</span>
+                            <span className="text-lg font-display font-bold text-white leading-tight">Swipe N Go</span>
                             <span className="text-xs text-brand-primary font-medium">Admin Panel</span>
                         </div>
                     </Link>

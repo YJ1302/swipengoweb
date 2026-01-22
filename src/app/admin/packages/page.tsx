@@ -41,6 +41,50 @@ const EMPTY_PACKAGE: Omit<Package, '_rowIndex'> = {
     highlights: '', itinerary: '', what_to_carry: ''
 };
 
+// Helper: Convert Decimal to DMS string
+const toDMS = (coordinate: number | string, type: 'lat' | 'lng'): string => {
+    if (coordinate === '' || coordinate === null || coordinate === undefined) return '';
+    const num = Number(coordinate);
+    if (isNaN(num)) return String(coordinate); // return as is if already string/invalid
+
+    const abs = Math.abs(num);
+    const deg = Math.floor(abs);
+    const minDecimal = (abs - deg) * 60;
+    const min = Math.floor(minDecimal);
+    const sec = Math.round((minDecimal - min) * 60);
+
+    const dir = type === 'lat'
+        ? (num >= 0 ? 'N' : 'S')
+        : (num >= 0 ? 'E' : 'W');
+
+    return `${deg}°${min}'${sec}" ${dir}`;
+};
+
+// Helper: Parse DMS string or Decimal to number
+const parseDMS = (input: string): number | null => {
+    if (!input) return null;
+    const clean = input.toString().trim();
+    // Try simple decimal
+    if (!isNaN(Number(clean))) return Number(clean);
+
+    // Parse DMS - matches 8:15:00 N, 8°15'00" N, 8 15 0 N
+    const regex = /^(\d+(?:\.\d+)?)[°:\s]+(\d+(?:\.\d+)?)?[':\s]*(\d+(?:\.\d+)?)?["\s]*([NSEWnsew])?$/i;
+    const match = clean.match(regex);
+
+    if (!match) return null;
+
+    const deg = parseFloat(match[1]);
+    const min = match[2] ? parseFloat(match[2]) : 0;
+    const sec = match[3] ? parseFloat(match[3]) : 0;
+    const dir = match[4] ? match[4].toUpperCase() : '';
+
+    let val = deg + min / 60 + sec / 3600;
+
+    if (dir === 'S' || dir === 'W') val = -val;
+
+    return parseFloat(val.toFixed(6));
+};
+
 export default function AdminPackagesPage() {
     const [packages, setPackages] = useState<Package[]>([]);
     const [loading, setLoading] = useState(true);
@@ -89,8 +133,8 @@ export default function AdminPackagesPage() {
             image_url: pkg.image_url || '',
             active: pkg.active === 'TRUE' || pkg.active === true,
             order: pkg.order || 0,
-            lat: pkg.lat || '',
-            lng: pkg.lng || '',
+            lat: toDMS(pkg.lat, 'lat'),
+            lng: toDMS(pkg.lng, 'lng'),
             country: pkg.country || '',
             city: pkg.city || '',
             category: pkg.category || '',
@@ -103,14 +147,19 @@ export default function AdminPackagesPage() {
     };
 
     const handleSave = async () => {
+        // Parse Lat/Lng
+        const latDecimal = parseDMS(String(formData.lat));
+        const lngDecimal = parseDMS(String(formData.lng));
+
         // Validate required fields
         const requiredFields = [];
         if (!formData.slug) requiredFields.push('Slug');
         if (!formData.title) requiredFields.push('Title');
         if (!formData.location) requiredFields.push('Location');
         if (!formData.image_url) requiredFields.push('Image URL');
-        if (!formData.lat) requiredFields.push('Latitude');
-        if (!formData.lng) requiredFields.push('Longitude');
+
+        if (latDecimal === null) requiredFields.push('Valid Latitude (e.g. 8°15\'00" N)');
+        if (lngDecimal === null) requiredFields.push('Valid Longitude (e.g. 74°12\'00" E)');
 
         if (requiredFields.length > 0) {
             alert(`Please fill in required fields: ${requiredFields.join(', ')}`);
@@ -120,9 +169,17 @@ export default function AdminPackagesPage() {
         setSaving(true);
         try {
             const method = editingPackage ? 'PUT' : 'POST';
+
+            // Prepare body with decimal lat/lng
+            const payload = {
+                ...formData,
+                lat: latDecimal,
+                lng: lngDecimal
+            };
+
             const body = editingPackage
-                ? { ...formData, _rowIndex: editingPackage._rowIndex }
-                : formData;
+                ? { ...payload, _rowIndex: editingPackage._rowIndex }
+                : payload;
 
             const res = await fetch('/api/admin/packages', {
                 method,
@@ -526,14 +583,18 @@ export default function AdminPackagesPage() {
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-slate-400 text-sm mb-1">Latitude <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="text"
-                                            value={formData.lat}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, lat: e.target.value }))}
-                                            placeholder="15.2993"
-                                            required
-                                            className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={formData.lat}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, lat: e.target.value }))}
+                                                placeholder={`8°15'00" N`}
+                                                required
+                                                className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
+                                            />
+                                            {/* Helper text only on focus or always? small below */}
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">DMS (8°15' N) or Decimal (8.25)</p>
                                     </div>
                                     <div>
                                         <label className="block text-slate-400 text-sm mb-1">Longitude <span className="text-red-500">*</span></label>
@@ -541,10 +602,11 @@ export default function AdminPackagesPage() {
                                             type="text"
                                             value={formData.lng}
                                             onChange={(e) => setFormData(prev => ({ ...prev, lng: e.target.value }))}
-                                            placeholder="74.1240"
+                                            placeholder={`74°12'00" E`}
                                             required
                                             className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50"
                                         />
+                                        <p className="text-xs text-slate-500 mt-1">DMS (74°12' E) or Decimal (74.20)</p>
                                     </div>
                                 </div>
 
@@ -644,8 +706,8 @@ export default function AdminPackagesPage() {
                     <div
                         key={toast.id}
                         className={`px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-slide-in ${toast.type === 'success'
-                                ? 'bg-green-500/90 text-white'
-                                : 'bg-red-500/90 text-white'
+                            ? 'bg-green-500/90 text-white'
+                            : 'bg-red-500/90 text-white'
                             }`}
                     >
                         {toast.type === 'success' ? (
