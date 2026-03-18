@@ -4,16 +4,25 @@ export function parseItinerary(value: string | undefined | null): ItineraryDay[]
     if (!value) return [];
     const trimmed = value.trim();
 
-    // Try JSON first
+    // Try JSON first (Option A)
     if (trimmed.startsWith('[')) {
         try {
-            return JSON.parse(trimmed);
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                return parsed.map((item, index) => ({
+                    id: item.id || `day-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    day: typeof item.day === 'number' ? item.day : index + 1,
+                    title: item.title || '',
+                    description: item.description || '',
+                    image: item.image || ''
+                }));
+            }
         } catch {
             // Fall through 
         }
     }
 
-    // Pipe-separated format: "Day 1: Title - Description | Day 2: ..."
+    // Pipe-separated format (Legacy fallback): "Day 1: Title - Description | Day 2: ..."
     const days: ItineraryDay[] = [];
     const parts = trimmed.split('|');
 
@@ -21,8 +30,6 @@ export function parseItinerary(value: string | undefined | null): ItineraryDay[]
         const cleaned = part.trim();
         if (!cleaned) return;
 
-        // Try to parse "Day N: Title - Description"
-        // Use [\s\S] to match valid content including newlines
         const dayMatch = cleaned.match(/^Day\s*(\d+)\s*[:\.]\s*([\s\S]+)/i);
 
         if (dayMatch) {
@@ -30,7 +37,6 @@ export function parseItinerary(value: string | undefined | null): ItineraryDay[]
             let rest = dayMatch[2];
             let image: string | undefined;
 
-            // Extract Markdown Image if present: ![alt](url)
             const imgMatch = rest.match(/!\[.*?\]\((.*?)\)/);
             if (imgMatch) {
                 image = imgMatch[1];
@@ -40,29 +46,22 @@ export function parseItinerary(value: string | undefined | null): ItineraryDay[]
             let title = '';
             let description = '';
 
-            // Limit title search to first line if possible, or look for separator
             const dashIndex = rest.indexOf(' - ');
 
             if (dashIndex > 0) {
-                // Check if dash is reasonably close to start (e.g. valid title length)
                 title = rest.substring(0, dashIndex).trim();
                 description = rest.substring(dashIndex + 3).trim();
             } else {
-                // Fallback: Check for single dash
                 const simpleDash = rest.indexOf('-');
-                // Ensure simple dash is within fitst 50 chars to call it a title separator
                 if (simpleDash > 0 && simpleDash < 50) {
                     title = rest.substring(0, simpleDash).trim();
                     description = rest.substring(simpleDash + 1).trim();
                 } else {
-                    // No separator found.
-                    // If it's multiline, maybe First Line is title?
                     const lines = rest.split('\n');
                     if (lines.length > 1) {
                         title = lines[0].trim();
                         description = lines.slice(1).join('\n').trim();
                     } else {
-                        // Title - Details format missing
                         title = `Day ${dayNum}`;
                         description = rest.trim();
                     }
@@ -70,14 +69,15 @@ export function parseItinerary(value: string | undefined | null): ItineraryDay[]
             }
 
             days.push({
+                id: `day-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                 day: dayNum,
                 title,
                 description,
                 image
             });
         } else {
-            // Fallback for Malformed 'Day X' or just text
             days.push({
+                id: `day-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                 day: index + 1,
                 title: `Day ${index + 1}`,
                 description: cleaned
@@ -91,24 +91,16 @@ export function parseItinerary(value: string | undefined | null): ItineraryDay[]
 export function serializeItinerary(days: ItineraryDay[]): string {
     if (!days || days.length === 0) return '';
 
-    return days
+    // Save strictly as JSON layout (Robust Option A)
+    const processedDays = days
         .sort((a, b) => a.day - b.day)
-        .map(d => {
-            const title = d.title.trim();
-            let desc = d.description.trim();
+        .map(d => ({
+            id: d.id,
+            day: d.day,
+            title: d.title.trim(),
+            description: d.description.trim(),
+            image: d.image ? d.image.trim() : undefined
+        }));
 
-            // Append image markdown if exists
-            if (d.image && d.image.trim()) {
-                desc = `${desc}\n\n![Image](${d.image.trim()})`;
-            }
-
-            // Ensure we don't output "Day 1: - " if title missing
-            const safeTitle = title || `Day ${d.day}`;
-
-            if (desc) {
-                return `Day ${d.day}: ${safeTitle} - ${desc}`;
-            }
-            return `Day ${d.day}: ${safeTitle}`;
-        })
-        .join(' | ');
+    return JSON.stringify(processedDays);
 }

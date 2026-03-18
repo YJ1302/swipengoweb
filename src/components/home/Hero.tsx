@@ -100,9 +100,35 @@ export function Hero() {
                     transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                     className="mb-6"
                 >
-                    <span className="inline-block px-4 py-2 bg-white/10 text-brand-primary rounded-full text-sm font-medium border border-white/20 backdrop-blur-md shadow-lg">
-                        ✈️ Your Dream Vacation Awaits
-                    </span>
+                    <motion.span 
+                        className="inline-block px-4 py-2 bg-white/10 text-brand-primary rounded-full text-sm font-medium border border-white/20 backdrop-blur-md shadow-lg"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.05,
+                                    delayChildren: 0.6,
+                                }
+                            }
+                        }}
+                    >
+                        {"Your Dream Vacation Awaits".split('').map((char, index) => (
+                            <motion.span
+                                key={index}
+                                variants={{
+                                    hidden: { opacity: 0, y: 5 },
+                                    visible: { opacity: 1, y: 0 }
+                                }}
+                                className="inline-block"
+                                style={{ whiteSpace: 'pre' }}
+                            >
+                                {char}
+                            </motion.span>
+                        ))}
+                    </motion.span>
                 </motion.div>
 
                 <motion.h1
@@ -177,7 +203,7 @@ export function Hero() {
                 className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden sm:block"
             >
                 <div className="flex flex-col items-center gap-2">
-                    <span className="text-xs text-white/50 font-medium tracking-widest uppercase">Scroll</span>
+                    <span className="text-xs text-white/50 font-medium tracking-widest uppercase"></span>
                     <motion.div
                         animate={{ y: [0, 8, 0] }}
                         transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}

@@ -75,6 +75,7 @@ interface RawPackage {
     country?: string;
     city?: string;
     category?: string;
+    type?: string;
     best_time?: string;
     highlights?: string;
     itinerary?: string;
@@ -129,6 +130,24 @@ function parseList(value: string | undefined): string[] {
 
 // Parse itinerary moved to @/utils/itinerary
 
+// Identify what type of data Papa Parse actually extracted for Type
+function extractTypeSafely(raw: RawPackage): string {
+    // If 'type' is a number like 79.57026, the CSV columns are shifted!
+    const rawType = (raw.type || '').trim();
+    if (!isNaN(parseFloat(rawType)) && rawType.includes('.')) {
+        // It parsed longitude into the 'type' column due to a missing header or offset!
+        // So 'type' is actually empty in the parser's eyes, or located elsewhere.
+        // Try to find the word domestic/international in *any* column just in case.
+        const allValues = Object.values(raw).join(' ').toLowerCase();
+        if (allValues.includes('domestic')) return 'Domestic';
+        if (allValues.includes('international')) return 'International';
+        return '';
+    }
+    
+    // Normal case: It actually extracted 'Type'
+    return rawType;
+}
+
 function transformPackage(raw: RawPackage): Package {
     return {
         slug: (raw.slug || '').trim(),
@@ -148,6 +167,7 @@ function transformPackage(raw: RawPackage): Package {
         country: (raw.country || '').trim(),
         city: (raw.city || '').trim(),
         category: (raw.category || '').trim(),
+        type: extractTypeSafely(raw),
         best_time: (raw.best_time || '').trim(),
         highlights: parseList(raw.highlights),
         itinerary: parseItinerary(raw.itinerary),

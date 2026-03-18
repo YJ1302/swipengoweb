@@ -19,6 +19,7 @@ export interface Package {
   country: string;
   city: string;
   category: string;
+  type: string;
   best_time: string;
   highlights: string[];
   itinerary: ItineraryDay[];
@@ -26,6 +27,7 @@ export interface Package {
 }
 
 export interface ItineraryDay {
+  id?: string;
   day: number;
   title: string;
   description: string;

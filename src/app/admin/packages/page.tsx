@@ -24,6 +24,7 @@ interface Package {
     country: string;
     city: string;
     category: string;
+    type: string;
     best_time: string;
     highlights: string;
     itinerary: string;
@@ -39,7 +40,7 @@ interface Toast {
 const EMPTY_PACKAGE: Omit<Package, '_rowIndex'> = {
     slug: '', title: '', price: '', duration: '', location: '', description: '',
     includes: '', excludes: '', image_url: '', active: true, order: 0,
-    lat: '', lng: '', country: '', city: '', category: '', best_time: '',
+    lat: '', lng: '', country: '', city: '', category: '', type: '', best_time: '',
     highlights: '', itinerary: '', what_to_carry: ''
 };
 
@@ -145,6 +146,7 @@ export default function AdminPackagesPage() {
             country: pkg.country || '',
             city: pkg.city || '',
             category: pkg.category || '',
+            type: pkg.type || '',
             best_time: pkg.best_time || '',
             highlights: pkg.highlights || '',
             itinerary: pkg.itinerary || '',
@@ -171,6 +173,12 @@ export default function AdminPackagesPage() {
 
         if (requiredFields.length > 0) {
             alert(`Please fill in required fields: ${requiredFields.join(', ')}`);
+            return;
+        }
+
+        const emptyDays = itineraryDays.some(d => !d.title.trim() || !d.description.trim());
+        if (emptyDays) {
+            alert('Please fill in both title and details for all itinerary days.');
             return;
         }
 
@@ -235,31 +243,29 @@ export default function AdminPackagesPage() {
 
     // Itinerary Handlers
     const addDay = () => {
-        setItineraryDays(prev => [...prev, { day: prev.length + 1, title: '', description: '' }]);
+        const newId = `day-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        setItineraryDays(prev => [...prev, { id: newId, day: prev.length + 1, title: '', description: '' }]);
     };
 
-    const updateDay = (index: number, field: 'title' | 'description' | 'image', value: string) => {
-        setItineraryDays(prev => {
-            const next = [...prev];
-            // @ts-ignore - dynamic key assignment
-            next[index] = { ...next[index], [field]: value };
-            return next;
-        });
+    const updateDay = (id: string, field: 'title' | 'description' | 'image', value: string) => {
+        setItineraryDays(prev => prev.map(d => d.id === id ? { ...d, [field]: value } : d));
     };
 
-    const removeDay = (index: number) => {
+    const removeDay = (id: string) => {
         if (!confirm('Remove this day?')) return;
         setItineraryDays(prev => {
-            const next = prev.filter((_, i) => i !== index);
+            const next = prev.filter(d => d.id !== id);
             return next.map((d, i) => ({ ...d, day: i + 1 })); // Re-index
         });
     };
 
-    const moveDay = (index: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === itineraryDays.length - 1) return;
-
+    const moveDay = (id: string, direction: 'up' | 'down') => {
         setItineraryDays(prev => {
+            const index = prev.findIndex(d => d.id === id);
+            if (index === -1) return prev;
+            if (direction === 'up' && index === 0) return prev;
+            if (direction === 'down' && index === prev.length - 1) return prev;
+
             const next = [...prev];
             const targetIndex = direction === 'up' ? index - 1 : index + 1;
             [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
@@ -460,7 +466,9 @@ export default function AdminPackagesPage() {
                                     <div><label className="block text-slate-400 text-sm mb-1">Order</label><input type="number" value={formData.order} onChange={(e) => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))} className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
                                 </div>
 
-                                <div><label className="block text-slate-400 text-sm mb-1">Location <span className="text-red-500">*</span></label><input type="text" value={formData.location} onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Goa, India" required className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
+                                <div className="grid md:grid-cols-1 gap-4">
+                                    <div><label className="block text-slate-400 text-sm mb-1">Location <span className="text-red-500">*</span></label><input type="text" value={formData.location} onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Goa, India" required className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
+                                </div>
 
                                 <div>
                                     <label className="block text-slate-400 text-sm mb-1">Image URL <span className="text-red-500">*</span></label>
@@ -505,24 +513,24 @@ export default function AdminPackagesPage() {
                                     </div>
                                     <div className="space-y-4">
                                         {itineraryDays.map((day, index) => (
-                                            <div key={index} className="bg-slate-800 border border-white/5 rounded-lg p-3 relative group">
+                                            <div key={day.id || index} className="bg-slate-800 border border-white/5 rounded-lg p-3 relative group">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className="text-brand-primary font-bold text-sm bg-brand-primary/10 px-2 py-1 rounded">Day {day.day}</span>
                                                     <div className="flex-1">
-                                                        <input type="text" value={day.title} onChange={(e) => updateDay(index, 'title', e.target.value)} placeholder="Title (e.g. Arrival)" className="w-full px-3 py-1 bg-slate-700/50 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary/50" />
+                                                        <input type="text" value={day.title} onChange={(e) => updateDay(day.id!, 'title', e.target.value)} placeholder="Title (e.g. Arrival)" className="w-full px-3 py-1 bg-slate-700/50 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary/50" />
                                                     </div>
                                                     <div className="flex items-center gap-1">
-                                                        <button onClick={() => moveDay(index, 'up')} disabled={index === 0} className="p-1 text-slate-400 hover:text-white disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
-                                                        <button onClick={() => moveDay(index, 'down')} disabled={index === itineraryDays.length - 1} className="p-1 text-slate-400 hover:text-white disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
-                                                        <button onClick={() => removeDay(index)} className="p-1 text-red-400 hover:text-red-300 ml-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                                        <button onClick={() => moveDay(day.id!, 'up')} disabled={index === 0} className="p-1 text-slate-400 hover:text-white disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                                                        <button onClick={() => moveDay(day.id!, 'down')} disabled={index === itineraryDays.length - 1} className="p-1 text-slate-400 hover:text-white disabled:opacity-30"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
+                                                        <button onClick={() => removeDay(day.id!)} className="p-1 text-red-400 hover:text-red-300 ml-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                                                     </div>
                                                 </div>
-                                                <textarea value={day.description} onChange={(e) => updateDay(index, 'description', e.target.value)} rows={2} placeholder="Details..." className="w-full px-3 py-2 bg-slate-700/30 border border-white/5 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary/50 resize-none" />
+                                                <textarea value={day.description} onChange={(e) => updateDay(day.id!, 'description', e.target.value)} rows={2} placeholder="Details..." className="w-full px-3 py-2 bg-slate-700/30 border border-white/5 rounded-lg text-slate-300 text-sm focus:outline-none focus:ring-1 focus:ring-brand-primary/50 resize-none" />
                                                 <div className="mt-2">
                                                     <input
                                                         type="text"
                                                         value={day.image || ''}
-                                                        onChange={(e) => updateDay(index, 'image', e.target.value)}
+                                                        onChange={(e) => updateDay(day.id!, 'image', e.target.value)}
                                                         placeholder="Image URL (optional) - e.g. https://example.com/photo.jpg"
                                                         className="w-full px-3 py-1 bg-slate-700/30 border border-white/5 rounded-lg text-slate-300 text-xs focus:outline-none focus:ring-1 focus:ring-brand-primary/50"
                                                     />

@@ -7,6 +7,11 @@ export async function GET() {
     try {
         console.log(`[AdminAPI] Fetching Leads from: ${ADMIN_API_URL}`);
 
+        if (!ADMIN_API_URL) {
+            console.warn('[AdminAPI] ADMIN_API_URL is not set. Returning a clean error.');
+            return NextResponse.json({ error: 'ADMIN_API_URL is not configured in .env.local' }, { status: 200 });
+        }
+
         const response = await fetch(`${ADMIN_API_URL}?action=getLeads&key=${ADMIN_KEY}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },

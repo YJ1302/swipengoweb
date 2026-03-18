@@ -236,7 +236,7 @@ function getPackages() {
 function addPackage(e) {
     var headers = ['slug', 'title', 'price', 'duration', 'location', 'description',
         'includes', 'excludes', 'image_url', 'whatsapp_text', 'active',
-        'order', 'lat', 'lng', 'country', 'city', 'category', 'best_time',
+        'order', 'lat', 'lng', 'country', 'city', 'category', 'type', 'best_time',
         'highlights', 'itinerary', 'what_to_carry'];
 
     var sheet = getOrCreateSheet('Packages', headers);
@@ -272,6 +272,7 @@ function addPackage(e) {
         (data.country || '').toString().trim(),
         (data.city || '').toString().trim(),
         (data.category || '').toString().trim(),
+        (data.type || '').toString().trim(),
         (data.best_time || '').toString().trim(),
         (data.highlights || '').toString().trim(),
         (data.itinerary || '').toString().trim(),
