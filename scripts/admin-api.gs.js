@@ -43,6 +43,10 @@ function handleRequest(e, method) {
       Google Apps Script web apps don't always reliably pass custom headers in `e` to `doGet`/`doPost` depending on the runtime/deployment.
       Query param is the most reliable method for GAS. We'll support query param 'key'.
     */
+    if (action === 'getCustomPackagesPublic') {
+        return getCustomPackagesPublic();
+    }
+
     if (key !== ADMIN_KEY) {
         return createResponse({ error: 'Unauthorized: Invalid or missing API key' }, false, 401);
     }
@@ -58,6 +62,12 @@ function handleRequest(e, method) {
             case 'addPackage': return addPackage(e);
             case 'updatePackage': return updatePackage(e);
             case 'deletePackage': return deletePackage(e);
+
+            // Custom Packages (READ/WRITE)
+            case 'getCustomPackages': return getCustomPackages();
+            case 'addCustomPackage': return addCustomPackage(e);
+            case 'updateCustomPackage': return updateCustomPackage(e);
+            case 'deleteCustomPackage': return deleteCustomPackage(e);
 
             // Gallery (READ/WRITE)
             case 'getGallery': return getGallery();
@@ -428,4 +438,125 @@ function testConnection() {
         counts: counts,
         timestamp: new Date().toISOString()
     }, true);
+}
+
+// ============================================
+// CUSTOM PACKAGES
+// ============================================
+
+function getCustomPackagesPublic() {
+    var raw = getSheetData('CustomPackages');
+    var processed = raw.filter(function(item) {
+        return parseBoolean(item.active);
+    }).map(function(item) {
+        item.duration_days = parseNumber(item.duration_days);
+        item.hotel_star = parseNumber(item.hotel_star);
+        item.price = parseNumber(item.price);
+        item.order = parseNumber(item.order);
+        item.active = true;
+        return item;
+    });
+    return createResponse(processed, true);
+}
+
+function getCustomPackages() {
+    var raw = getSheetData('CustomPackages');
+    var processed = raw.map(function(item) {
+        item.duration_days = parseNumber(item.duration_days);
+        item.hotel_star = parseNumber(item.hotel_star);
+        item.price = parseNumber(item.price);
+        item.order = parseNumber(item.order);
+        item.active = parseBoolean(item.active);
+        return item;
+    });
+    return createResponse(processed, true);
+}
+
+function generateId() {
+    return 'cp_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
+}
+
+function addCustomPackage(e) {
+    var headers = ['id', 'destination', 'duration_days', 'hotel_star', 'meal_plan', 'transport', 'activity_pack', 'season', 'currency', 'price', 'active', 'order'];
+    var sheet = getOrCreateSheet('CustomPackages', headers);
+    
+    var data;
+    if (e.postData && e.postData.contents) {
+        data = JSON.parse(e.postData.contents);
+    } else {
+        throw new Error('No data provided');
+    }
+
+    var id = (data.id || generateId()).toString().trim();
+    
+    // Unique combo check
+    var existing = sheet.getDataRange().getValues();
+    var dest = (data.destination || '').toString().trim().toLowerCase();
+    var dur = (data.duration_days || '').toString().trim();
+    var star = (data.hotel_star || '').toString().trim();
+    var meal = (data.meal_plan || '').toString().trim().toLowerCase();
+    var trans = (data.transport || '').toString().trim().toLowerCase();
+    var act = (data.activity_pack || '').toString().trim().toLowerCase();
+    var szn = (data.season || '').toString().trim().toLowerCase();
+
+    // Skip header row
+    for (var i = 1; i < existing.length; i++) {
+        var row = existing[i];
+        if (
+            row[1].toString().trim().toLowerCase() === dest &&
+            row[2].toString().trim() === dur &&
+            row[3].toString().trim() === star &&
+            row[4].toString().trim().toLowerCase() === meal &&
+            row[5].toString().trim().toLowerCase() === trans &&
+            row[6].toString().trim().toLowerCase() === act &&
+            row[7].toString().trim().toLowerCase() === szn
+        ) {
+            throw new Error('Combination already exists');
+        }
+    }
+
+    sheet.appendRow([
+        id,
+        (data.destination || '').toString().trim(),
+        parseNumber(data.duration_days),
+        parseNumber(data.hotel_star),
+        (data.meal_plan || '').toString().trim(),
+        (data.transport || '').toString().trim(),
+        (data.activity_pack || '').toString().trim(),
+        (data.season || '').toString().trim(),
+        (data.currency || 'INR').toString().trim(),
+        parseNumber(data.price),
+        parseBoolean(data.active) ? 'TRUE' : 'FALSE',
+        parseNumber(data.order)
+    ]);
+
+    return createResponse({ message: 'Custom Package added', id: id }, true);
+}
+
+function updateCustomPackage(e) {
+    var data = JSON.parse(e.postData.contents);
+    if (!data._rowIndex) throw new Error('Row index required');
+
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('CustomPackages');
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    for (var col = 0; col < headers.length; col++) {
+        var key = headers[col].toString().toLowerCase().replace(/\s+/g, '_');
+        if (data.hasOwnProperty(key) && key !== '_rowindex') {
+            var val = data[key];
+            if (key === 'active') val = parseBoolean(val) ? 'TRUE' : 'FALSE';
+            else if (key === 'duration_days' || key === 'hotel_star' || key === 'price' || key === 'order') val = parseNumber(val);
+
+            sheet.getRange(data._rowIndex, col + 1).setValue(val);
+        }
+    }
+
+    return createResponse({ message: 'Custom Package updated' }, true);
+}
+
+function deleteCustomPackage(e) {
+    var data = JSON.parse(e.postData.contents);
+    if (!data._rowIndex) throw new Error('Row index required');
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('CustomPackages').deleteRow(data._rowIndex);
+    return createResponse({ message: 'Custom Package deleted' }, true);
 }

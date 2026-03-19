@@ -12,6 +12,7 @@ export function Header() {
     const navLinks = [
         { href: '/', label: 'Home', external: false },
         { href: '/packages', label: 'Packages', external: false },
+        { href: '/customize', label: 'Customize Package', external: false },
         { href: '/gallery', label: 'Gallery', external: false },
     ];
 
@@ -19,10 +20,10 @@ export function Header() {
         <header className="fixed top-0 left-0 right-0 z-50 bg-brand-navy/95 backdrop-blur-md border-b border-white/10">
             {/* Full width container with standard padding */}
             <div className="w-full px-4 sm:px-6 lg:px-12">
-                <div className="flex items-center justify-between h-20 relative">
+                <div className="flex items-center justify-between h-20 gap-4">
 
                     {/* LEFT: Logo */}
-                    <div className="flex-shrink-0 z-20">
+                    <div className="flex-shrink-0">
                         <Link href="/" className="flex items-center group">
                             <div className="bg-white/95 rounded-lg p-1 transform group-hover:scale-105 transition-transform duration-300">
                                 <Image
@@ -37,29 +38,22 @@ export function Header() {
                         </Link>
                     </div>
 
-                    {/* CENTER: Text (Absolute centered on desktop, hidden or stacked on mobile?) 
-                        User: "It should be responsive and not overlap on mobile (collapse neatly)." 
-                        I'll hide it on very small screens or make it smaller. 
-                        Actually, "collapse neatly" often means stacking or hiding. 
-                        Given space constraints on mobile (Logo + Menu Button), centering text might overlap. 
-                        I'll show it only on md+ screens for absolute centering, 
-                        or use flex-grow with text-center.
-                    */}
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
-                        <span className="text-xl lg:text-2xl font-bold text-white tracking-wide uppercase font-display bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-primary/80">
+                    {/* CENTER: Text */}
+                    <div className="hidden lg:block flex-1 text-center truncate px-4">
+                        <span className="text-xl xl:text-2xl font-bold text-white tracking-wide uppercase font-display bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-primary/80">
                             Swipe N Go Vacations
                         </span>
                     </div>
 
                     {/* RIGHT: Navigation */}
-                    <div className="flex items-center z-20">
+                    <div className="flex items-center flex-shrink-0">
                         {/* Desktop Nav */}
-                        <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
+                        <nav className="hidden lg:flex items-center space-x-1 lg:space-x-4">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className="px-3 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200"
+                                    className="px-3 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200 whitespace-nowrap"
                                 >
                                     {link.label}
                                 </Link>
@@ -68,7 +62,7 @@ export function Header() {
                                 href={whatsappUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-3 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200"
+                                className="px-3 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all duration-200 whitespace-nowrap"
                             >
                                 Contact
                             </a>
@@ -77,7 +71,7 @@ export function Header() {
                         {/* Mobile Menu Button */}
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="md:hidden p-2 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors ml-4"
+                            className="lg:hidden p-2 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors ml-4"
                             aria-label="Toggle menu"
                         >
                             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

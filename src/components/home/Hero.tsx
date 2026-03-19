@@ -100,7 +100,7 @@ export function Hero() {
                     transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                     className="mb-6"
                 >
-                    <motion.span 
+                    <motion.span
                         className="inline-block px-4 py-2 bg-white/10 text-brand-primary rounded-full text-sm font-medium border border-white/20 backdrop-blur-md shadow-lg"
                         initial="hidden"
                         animate="visible"

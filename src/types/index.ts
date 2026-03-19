@@ -66,3 +66,19 @@ export interface QuoteRequest {
   budget_range: string;
   notes: string;
 }
+
+export interface CustomPackage {
+  _rowIndex?: number;
+  id: string;
+  destination: string;
+  duration_days: number;
+  hotel_star: number;
+  meal_plan: string;
+  transport: string;
+  activity_pack: string;
+  season: string;
+  currency: string;
+  price: number;
+  active: boolean;
+  order: number;
+}

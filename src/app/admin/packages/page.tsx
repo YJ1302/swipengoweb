@@ -466,8 +466,16 @@ export default function AdminPackagesPage() {
                                     <div><label className="block text-slate-400 text-sm mb-1">Order</label><input type="number" value={formData.order} onChange={(e) => setFormData(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))} className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
                                 </div>
 
-                                <div className="grid md:grid-cols-1 gap-4">
+                                <div className="grid md:grid-cols-2 gap-4">
                                     <div><label className="block text-slate-400 text-sm mb-1">Location <span className="text-red-500">*</span></label><input type="text" value={formData.location} onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Goa, India" required className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50" /></div>
+                                    <div>
+                                        <label className="block text-slate-400 text-sm mb-1">Type <span className="text-red-500">*</span></label>
+                                        <select value={formData.type} onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))} required className="w-full px-4 py-2 bg-slate-700/50 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-primary/50">
+                                            <option value="">Select Type</option>
+                                            <option value="Domestic">Domestic</option>
+                                            <option value="International">International</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div>

@@ -21,14 +21,15 @@ export function PackageCard({ package: pkg }: PackageCardProps) {
         setDefaultRating(ratingNum.toFixed(1));
     }, [pkg.slug]);
 
-    // Extract chips from category and highlights
+    // Extract chips from category, type, and highlights
     const chipsOptions = [];
+    if (pkg.type) chipsOptions.push(pkg.type);
     if (pkg.category) chipsOptions.push(pkg.category);
     if (pkg.highlights && pkg.highlights.length > 0) {
         chipsOptions.push(...pkg.highlights);
     }
     // De-duplicate and slice
-    const uniqueChips = Array.from(new Set(chipsOptions)).slice(0, 2);
+    const uniqueChips = Array.from(new Set(chipsOptions)).slice(0, 3);
 
     return (
         <Link 
