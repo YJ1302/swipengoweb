@@ -9,6 +9,8 @@ export default function CustomizePage() {
     const [loading, setLoading] = useState(true);
 
     const [destination, setDestination] = useState<string>('');
+    const [destSearch, setDestSearch] = useState<string>('');
+    const [destDropdownOpen, setDestDropdownOpen] = useState<boolean>(false);
     const [durationDays, setDurationDays] = useState<string>('');
     const [hotelStar, setHotelStar] = useState<string>('');
     const [mealPlan, setMealPlan] = useState<string>('');
@@ -36,6 +38,7 @@ export default function CustomizePage() {
 
     const handleClear = () => {
         setDestination('');
+        setDestSearch('');
         setDurationDays('');
         setHotelStar('');
         setMealPlan('');
@@ -136,14 +139,77 @@ Please send me the complete itinerary!`;
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                {/* Destination */}
-                                <div className="space-y-1.5">
+                                {/* Destination (Searchable Combobox) */}
+                                <div className="space-y-1.5 relative">
                                     <label className="text-sm font-medium text-slate-700">Destination</label>
-                                    <select value={destination} onChange={e => setDestination(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary transition">
-                                        <option value="">Select Destination</option>
-                                        {getOptions('destination').map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                    </select>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={destSearch}
+                                            onChange={(e) => {
+                                                setDestSearch(e.target.value);
+                                                setDestination(''); // Reset the selected exact match
+                                                setDestDropdownOpen(true);
+                                            }}
+                                            onFocus={() => {
+                                                if (!destSearch) setDestSearch('');
+                                                setDestDropdownOpen(true);
+                                            }}
+                                            onBlur={() => setTimeout(() => setDestDropdownOpen(false), 200)}
+                                            placeholder="Type to search destinations..."
+                                            className="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary transition shadow-sm"
+                                        />
+                                        
+                                        {destSearch && (
+                                            <button 
+                                                type="button"
+                                                onMouseDown={(e) => { 
+                                                    e.preventDefault(); 
+                                                    setDestSearch(''); 
+                                                    setDestination(''); 
+                                                    setDestDropdownOpen(true); 
+                                                }}
+                                                className="absolute inset-y-0 right-8 pr-2 flex items-center text-slate-400 hover:text-red-500 transition-colors focus:outline-none"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                        
+                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-brand-primary">
+                                            <svg className={`h-5 w-5 transition-transform duration-300 ${destDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Overlay Dropdown */}
+                                    {destDropdownOpen && (
+                                        <div className="absolute top-[76px] left-0 w-full z-[100] bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] max-h-60 overflow-y-auto overflow-x-hidden">
+                                            {(() => {
+                                                const opts = getOptions('destination').filter(opt => opt.toLowerCase().includes(destSearch.toLowerCase()));
+                                                if (opts.length === 0) {
+                                                    return <div className="px-4 py-4 text-slate-500 text-center italic text-sm">No destinations match your search...</div>;
+                                                }
+                                                return opts.map(opt => (
+                                                    <button
+                                                        key={opt}
+                                                        type="button"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault();
+                                                            setDestination(opt);
+                                                            setDestSearch(opt);
+                                                            setDestDropdownOpen(false);
+                                                        }}
+                                                        className="w-full text-left px-5 py-3 hover:bg-brand-primary/10 cursor-pointer text-slate-800 font-medium border-b border-slate-50 last:border-0 transition-colors focus:bg-brand-primary/20 focus:outline-none"
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ));
+                                            })()}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Duration */}
