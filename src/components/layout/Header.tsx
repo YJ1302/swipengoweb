@@ -51,9 +51,9 @@ export function Header() {
                         </Link>
                     </div>
 
-                    {/* CENTER: Text (Desktop Only) */}
-                    <div className="hidden lg:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center pointer-events-none w-max px-4">
-                        <span className="text-2xl lg:text-3xl xl:text-[34px] font-extrabold text-white tracking-widest uppercase font-display bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-brand-primary/80">
+                    {/* CENTER: Text */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 text-center pointer-events-none w-max">
+                        <span className="text-[10px] min-[375px]:text-xs sm:text-sm md:text-xl lg:text-3xl xl:text-[34px] font-extrabold text-white tracking-widest uppercase font-display bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-brand-primary/80">
                             Swipe N Go Vacations
                         </span>
                     </div>
